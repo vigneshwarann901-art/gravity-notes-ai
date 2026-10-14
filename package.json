@@ -1,0 +1,13 @@
+{
+  "name": "gravity-notes-ai-workspace",
+  "version": "2.0.0",
+  "description": "AI-powered spatial brainstorming mind map with spring physics and Gemini API copilot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

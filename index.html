@@ -1,0 +1,2657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gravity Notes — AI-Powered Spatial Thinking Workspace</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#080a12;
+  --panel:#101525;
+  --panel2:#141b2d;
+  --line:#29334d;
+  --text:#e8eefc;
+  --muted:#94a2bd;
+  --cyan:#46e6f4;
+  --pink:#f472d0;
+  --amber:#ffd166;
+  --green:#83f2b0;
+  --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#1a2237;color:var(--text);transition:.15s}
+button:hover:not(:disabled){border-color:#64749b;background:#202b45}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:linear-gradient(135deg,#087f95,#6d43bf);border-color:#3d9dac;font-weight:700}
+button.ai-btn{background:linear-gradient(135deg,#182447,#3b1d5e);border-color:#a78bfa88;color:#f3e8ff;font-weight:600}
+button.ai-btn:hover:not(:disabled){border-color:var(--pink);box-shadow:0 0 14px #f472d033}
+button.active{border-color:var(--cyan);box-shadow:0 0 0 1px #46e6f433;color:var(--cyan)}
+button.danger:hover:not(:disabled){border-color:#fb7185;color:#fecdd3}
+button.sm{padding:6px 9px;font-size:11px;border-radius:8px}
+.app{height:100%;display:flex;flex-direction:column;min-height:0}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #222a40;background:#0e1220;box-shadow:0 10px 28px #0004;z-index:4}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.logo{width:32px;height:32px;border-radius:10px;background:radial-gradient(circle at 30% 25%,#a5f3fc,#06b6d4 45%,#7c3aed 80%);box-shadow:0 0 22px #22d3ee55}
+.brand h1{font-size:15px;letter-spacing:.12em;margin:0}
+.brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:0;margin-top:2px}
+.toolrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px 370px;position:relative}
+.layout.ai-collapsed{grid-template-columns:minmax(0,1fr) 300px}
+.stage{min-width:0;min-height:0;position:relative;background:radial-gradient(ellipse at 55% 40%,#101a2c 0,#080a12 65%);overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.stage-label{position:absolute;left:16px;top:14px;max-width:min(550px,calc(100% - 32px));background:#0d1222dd;border:1px solid #28334d;border-radius:13px;padding:11px 14px;pointer-events:none;backdrop-filter:blur(8px)}
+.stage-label b{color:var(--cyan);font-size:13px}
+.stage-label p{margin:5px 0 0;color:#aeb9d0;font-size:12px;line-height:1.5}
+.hint{position:absolute;left:16px;bottom:14px;background:#0d1222d9;border:1px solid #28334d;border-radius:10px;padding:8px 10px;color:var(--muted);font-size:11px;pointer-events:none}
+.preview-banner{position:absolute;right:16px;top:14px;background:#191233ee;border:1px solid var(--pink);border-radius:12px;padding:9px 13px;font-size:12px;color:#fce7f3;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px #0008;z-index:2}
+.preview-banner[hidden]{display:none}
+.side{border-left:1px solid #222a40;background:#0d1120;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:13px}
+.ai-side{border-left:1px solid #262f4d;background:linear-gradient(180deg,#0e1326 0%,#0b0f1d 100%);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.layout.ai-collapsed .ai-side{display:none}
+.ai-header{padding:13px 15px;border-bottom:1px solid #222b45;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#11172b}
+.ai-header-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#e9d5ff}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block}
+.status-dot.ready{background:var(--green);box-shadow:0 0 8px var(--green)}
+.status-dot.byok{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.status-dot.busy{background:var(--cyan);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.25)}}
+.ai-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:13px}
+.section-title{color:#b9c5dc;text-transform:uppercase;font-size:10px;letter-spacing:.15em;font-weight:800;margin:0 0 8px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:#151c2e;border:1px solid #26304a;padding:10px;border-radius:11px}
+.stat strong{display:block;color:var(--cyan);font:600 20px ui-monospace,monospace}
+.stat span{color:var(--muted);font-size:11px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:11px;color:#aab7d0}
+.field input,.field textarea,.field select{width:100%;border:1px solid #2a3652;background:#0b1020;border-radius:9px;color:var(--text);padding:9px 10px;outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--cyan)}
+.field textarea{resize:vertical;min-height:94px;line-height:1.45}
+.row{display:flex;gap:7px;align-items:center}
+.row>*{flex:1;min-width:0}
+.toggleline{display:flex;align-items:center;justify-content:space-between;color:#c4cee2;font-size:12px;margin:8px 0}
+.toggleline input{accent-color:#22d3ee}
+.pill{font-size:10px;border-radius:999px;padding:3px 8px;border:1px solid #34405f;color:#b8c3da;background:#131b30}
+.pill.cyan{border-color:#46e6f466;color:var(--cyan)}
+.pill.pink{border-color:#f472d066;color:var(--pink)}
+.pill.amber{border-color:#ffd16666;color:var(--amber)}
+.pill.green{border-color:#83f2b066;color:var(--green)}
+.help{font-size:11px;color:var(--muted);line-height:1.55;margin:0}
+.footer{display:flex;gap:8px}
+.footer button{flex:1}
+.empty{color:#8795b0;background:#11182a;border:1px dashed #33405e;border-radius:12px;padding:13px;font-size:12px;line-height:1.5}
+.mini{font-size:10px;color:#697896;margin:4px 0 0}
+.toast{position:absolute;right:16px;bottom:16px;background:#142039;border:1px solid #3e587e;padding:10px 13px;border-radius:10px;color:#e4edff;font-size:12px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:10}
+.toast.show{opacity:1;transform:translateY(0)}
+.mobile-editor{display:none}
+/* AI Copilot Cards & Controls */
+.ai-config-box{background:#12192e;border:1px solid #2b3758;border-radius:12px;padding:11px;font-size:11px}
+.ai-config-box summary{cursor:pointer;font-weight:700;color:#cbd5e1;display:flex;align-items:center;justify-content:space-between;list-style:none}
+.ai-config-box summary::-webkit-details-marker{display:none}
+.ai-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.ai-tab{padding:7px 6px;font-size:11px;border-radius:8px;text-align:center;background:#131b31;border:1px solid #283453;color:#b9c6e2}
+.ai-tab.active{background:linear-gradient(135deg,#0f3547,#2f1f54);border-color:var(--cyan);color:#fff;font-weight:700}
+.ai-context-bar{background:#11182b;border:1px solid #24304e;border-radius:10px;padding:9px 11px;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ai-context-bar strong{color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;display:inline-block;vertical-align:bottom}
+.chip-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{font-size:11px;padding:5px 9px;border-radius:999px;background:#162038;border:1px solid #2c3b5e;color:#d0dcf5;cursor:pointer;text-align:left;line-height:1.3}
+.chip:hover{border-color:var(--cyan);color:#fff;background:#1c2947}
+.ai-card{background:#131b30;border:1px solid #2b3858;border-radius:11px;padding:11px;display:flex;flex-direction:column;gap:7px}
+.ai-card.warn{border-color:#fb718588;background:#261523}
+.ai-card.observed{border-left:3px solid var(--cyan)}
+.ai-card.inferred{border-left:3px solid var(--pink)}
+.ai-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ai-card-title{font-weight:700;font-size:12.5px;color:#f1f5f9;display:flex;align-items:center;gap:6px}
+.ai-card-body{font-size:11.5px;color:#bdcae2;line-height:1.5;white-space:pre-wrap}
+.diff-grid{display:grid;grid-template-columns:1fr;gap:8px;font-size:11.5px}
+.diff-box{padding:8px 10px;border-radius:8px;background:#0d1324;border:1px solid #24304c}
+.diff-box.after{border-color:#46e6f466;background:#0d1b2a}
+.diff-box b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.loader-bar{height:3px;width:100%;background:#1a233a;border-radius:3px;overflow:hidden;position:relative}
+.loader-bar::after{content:'';position:absolute;left:-40%;top:0;height:100%;width:40%;background:linear-gradient(90deg,transparent,var(--cyan),var(--pink),transparent);animation:slide 1.1s infinite}
+@keyframes slide{to{left:100%}}
+.security-note{font-size:10.5px;color:#fbbf24;background:#231d10;border:1px solid #5c4813;border-radius:8px;padding:8px;line-height:1.45}
+@media(max-width:1180px){
+  .layout{grid-template-columns:minmax(0,1fr) 290px}
+  .ai-side{position:absolute;right:0;top:0;bottom:0;width:min(380px,95vw);z-index:5;box-shadow:-12px 0 38px #000a}
+}
+@media(max-width:850px){
+  .layout,.layout.ai-collapsed{grid-template-columns:minmax(0,1fr)}
+  .side{position:absolute;right:0;top:auto;bottom:0;width:min(350px,94vw);max-height:64vh;border:1px solid #29334d;border-radius:18px 18px 0 0;box-shadow:0 -15px 50px #0009;z-index:3;transform:translateY(calc(100% - 48px));transition:transform .25s}
+  .side.open{transform:translateY(0)}
+  .ai-side{position:absolute;left:0;right:0;top:auto;bottom:0;width:100%;max-height:76vh;border-top:1px solid var(--purple);border-radius:18px 18px 0 0;z-index:5}
+  .mobile-editor{display:inline-block}
+  .top{padding:9px}
+  .toolrow button{padding:7px 9px;font-size:12px}
+  .brand h1{font-size:13px}
+  .stage-label{top:10px;left:10px}
+  .hint{left:10px;bottom:10px;max-width:calc(100% - 20px)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+ <div class="brand"><div class="logo"></div><div><h1>GRAVITY NOTES</h1><small>Ideas find their orbit · AI Thinking Workspace</small></div></div>
+ <div class="toolrow">
+  <button class="primary" id="addBtn">＋ Add idea</button>
+  <button id="connectBtn" title="Select two nodes to link them">↗ Connect</button>
+  <button id="gravityBtn" class="active">✦ Gravity on</button>
+  <button id="centerBtn">◎ Center</button>
+  <button id="undoAiBtn" title="Undo last AI-applied workspace change (Ctrl+Z)" disabled>↶ Undo AI</button>
+ </div>
+ <div class="toolrow">
+  <button class="ai-btn active" id="aiToggleBtn" title="Toggle AI Copilot Panel">✦ AI Copilot</button>
+  <button id="mdBtn">Export .md</button>
+  <button id="jsonBtn">Export .json</button>
+  <button id="zipBtn" title="Download complete runnable project as a .ZIP archive">⬇ Project .ZIP</button>
+  <button id="resetBtn" class="danger">Reset demo</button>
+  <button id="editorToggle" class="mobile-editor">✎ Editor</button>
+ </div>
+</header>
+<main class="layout" id="mainLayout">
+ <section class="stage" id="stage">
+  <canvas id="canvas" aria-label="Interactive idea graph"></canvas>
+  <div class="stage-label"><b>FORCE-DIRECTED BRAINSTORMER</b><p>Double-click empty space to add an idea. Drag nodes to arrange them; connections act like elastic springs. Shared tags gently pull related notes together.</p></div>
+  <div class="preview-banner" id="previewBanner" hidden>
+   <span>✦ <b>AI Preview Active:</b> Dashed rings &amp; links show proposed changes on the canvas.</span>
+   <button class="sm" id="clearPreviewBtn">Clear preview</button>
+  </div>
+  <div class="hint">DRAG · DOUBLE-CLICK TO ADD · CONNECT MODE: SELECT TWO NODES · CTRL+Z UNDO AI</div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+ </section>
+
+ <!-- ORIGINAL INSPECTOR SIDEBAR (PRESERVED) -->
+ <aside class="side" id="side">
+  <section><p class="section-title">Workspace</p><div class="statgrid"><div class="stat"><strong id="nodeCount">0</strong><span>Idea nodes</span></div><div class="stat"><strong id="linkCount">0</strong><span>Connections</span></div></div></section>
+  <section><p class="section-title">Selected idea <span class="pill" id="selectedPill">NONE</span></p><div id="emptyState" class="empty">Select a node on the canvas to edit it, or add a new idea to get started.</div>
+   <div id="editor" hidden>
+    <div class="field"><label for="titleInput">TITLE</label><input id="titleInput" maxlength="90" placeholder="A useful idea…" /></div>
+    <div class="field"><label for="bodyInput">DETAILS / NOTES</label><textarea id="bodyInput" maxlength="2500" placeholder="Add a thought, task, question, or next step…"></textarea></div>
+    <div class="row"><div class="field"><label for="tagInput">TAG</label><select id="tagInput"><option>General</option><option>Study</option><option>Product</option><option>Research</option><option>Action</option><option>Question</option></select></div><div class="field"><label for="priorityInput">PRIORITY</label><select id="priorityInput"><option value="1">Normal</option><option value="2">High</option><option value="3">Critical</option></select></div></div>
+    <div class="row"><button id="duplicateBtn">Duplicate</button><button id="deleteBtn" class="danger">Delete node</button></div>
+   </div>
+  </section>
+  <section><p class="section-title">Cluster controls</p>
+   <div class="field"><label for="tagFilter">Highlight tag</label><select id="tagFilter"><option value="all">All tags</option><option>General</option><option>Study</option><option>Product</option><option>Research</option><option>Action</option><option>Question</option></select></div>
+   <label class="toggleline"><span>Attract same tags</span><input id="sameTag" type="checkbox" checked /></label>
+   <label class="toggleline"><span>Repel unrelated ideas</span><input id="repel" type="checkbox" checked /></label>
+   <label class="toggleline"><span>Prioritize important nodes</span><input id="priorityGravity" type="checkbox" /></label>
+  </section>
+  <section><p class="section-title">How it works</p><p class="help">Notes use lightweight spring-and-repulsion physics. Connected ideas stay near each other; matching tags cluster together. Your workspace autosaves in this browser using local storage.</p><p class="mini" id="saveStatus">● Autosave ready</p></section>
+  <div class="footer"><button id="sampleBtn">Load sample map</button><button id="clearLinksBtn">Clear links</button></div>
+ </aside>
+
+ <!-- NEW AI COPILOT SIDE PANEL -->
+ <aside class="ai-side" id="aiSide" aria-label="AI Copilot Assistant">
+  <div class="ai-header">
+   <div class="ai-header-title">
+    <span class="status-dot" id="aiStatusDot"></span>
+    <span>AI Thinking Copilot</span>
+   </div>
+   <div style="display:flex;gap:5px;align-items:center">
+    <span class="pill" id="aiModeBadge">Unconfigured</span>
+    <button class="sm" id="aiCloseBtn" title="Hide AI Panel">✕</button>
+   </div>
+  </div>
+
+  <div class="ai-body">
+   <!-- AI Connection & Security Configuration -->
+   <details class="ai-config-box" id="aiConfigDetails">
+    <summary>
+     <span>⚙ AI Connection &amp; Model Settings</span>
+     <span class="pill cyan" id="activeModelPill">gemini-3.5-flash-lite</span>
+    </summary>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+     <div class="field" style="margin:0">
+      <label for="aiConnMode">CONNECTION MODE</label>
+      <select id="aiConnMode">
+       <option value="proxy">Server Proxy (/api/ai — Production Safe)</option>
+       <option value="byok">Bring Your Own API Key (Memory-Only Prototype)</option>
+      </select>
+     </div>
+     <div id="byokBox" hidden>
+      <div class="security-note">
+       <b>Prototype BYOK Mode:</b> Your Gemini API key is held <b>strictly in browser RAM</b> (never saved to localStorage, cookies, or exported files). For public deployments, use the included <code>server.js</code> proxy with an environment secret instead.
+      </div>
+      <div class="field" style="margin:6px 0 0">
+       <label for="byokInput">GEMINI API KEY (MEMORY ONLY)</label>
+       <div class="row">
+        <input id="byokInput" type="password" autocomplete="off" spellcheck="false" placeholder="AIzaSy…" />
+        <button class="sm" id="applyKeyBtn" style="flex:0 0 auto">Set Key</button>
+        <button class="sm danger" id="clearKeyBtn" style="flex:0 0 auto">Clear</button>
+       </div>
+      </div>
+     </div>
+     <div class="field" style="margin:0">
+      <label for="aiModelSelect">VERIFIED GEMINI MODEL (AUTO-FALLBACK ENABLED)</label>
+      <select id="aiModelSelect">
+       <option value="gemini-3.8-flash">gemini-3.8-flash (Latest Stable Flash)</option>
+       <option value="gemini-3.6-flash">gemini-3.6-flash (Stable Flash Alternative)</option>
+       <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite (Fast &amp; Lightweight)</option>
+       <option value="gemini-2.5-flash">gemini-2.5-flash (Stable 2.5 Flash)</option>
+       <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning 2.5 Pro)</option>
+       <option value="gemini-flash-latest">gemini-flash-latest (Dynamic Alias)</option>
+      </select>
+     </div>
+     <div class="row">
+      <button class="sm" id="checkProxyBtn">↻ Check Server Proxy</button>
+      <span class="mini" id="proxyStatusText" style="margin:0">Checking /api/ai/health…</span>
+     </div>
+    </div>
+   </details>
+
+   <!-- Context Indicator -->
+   <div class="ai-context-bar">
+    <div>
+     <span style="color:var(--muted)">Focus:</span>
+     <strong id="aiFocusTitle">None selected</strong>
+    </div>
+    <span class="pill" id="aiFocusTag">—</span>
+   </div>
+
+   <!-- 6 AI Copilot Modes Navigation -->
+   <nav class="ai-tabs" role="tablist" aria-label="AI Copilot Modes">
+    <button class="ai-tab active" data-tab="brainstorm" role="tab">✦ Brainstorm</button>
+    <button class="ai-tab" data-tab="improve" role="tab">⚡ Improve</button>
+    <button class="ai-tab" data-tab="understand" role="tab">◎ Understand</button>
+    <button class="ai-tab" data-tab="cluster" role="tab">❖ Cluster</button>
+    <button class="ai-tab" data-tab="plan" role="tab">▤ Action Plan</button>
+    <button class="ai-tab" data-tab="assistant" role="tab">💬 Ask Copilot</button>
+   </nav>
+
+   <!-- Dynamic Contextual Prompt Suggestions -->
+   <section>
+    <div class="section-title">
+     <span id="toolHeading">A. Brainstorm Connected Sub-Ideas</span>
+     <span class="pill pink" id="toolRequirementPill">Selected Node</span>
+    </div>
+    <p class="help" id="toolDescription">Generate 3–7 specific sub-ideas branching from the selected node. Review and approve before inserting onto the canvas.</p>
+    <div class="chip-list" id="suggestedPrompts"></div>
+   </section>
+
+   <!-- Tool-Specific Controls -->
+   <section id="toolControls">
+    <div class="row" id="brainstormControls" style="margin-bottom:8px">
+     <div class="field" style="margin:0">
+      <label for="subIdeaCount">COUNT (3–7)</label>
+      <select id="subIdeaCount">
+       <option value="3">3 sub-ideas</option>
+       <option value="4">4 sub-ideas</option>
+       <option value="5" selected>5 sub-ideas</option>
+       <option value="6">6 sub-ideas</option>
+       <option value="7">7 sub-ideas</option>
+      </select>
+     </div>
+     <div class="field" style="margin:0;flex:2">
+      <label for="brainstormAngle">OPTIONAL FOCUS / ANGLE</label>
+      <input id="brainstormAngle" maxlength="140" placeholder="e.g., technical risks, user onboarding, validation…" />
+     </div>
+    </div>
+
+    <div class="field" id="promptInputBox" hidden style="margin-bottom:8px">
+     <label for="aiPromptInput">QUESTION OR INSTRUCTION FOR YOUR WORKSPACE</label>
+     <textarea id="aiPromptInput" maxlength="1200" style="min-height:68px" placeholder="Ask anything about your nodes, themes, gaps, or next steps…"></textarea>
+    </div>
+
+    <div class="row">
+     <button class="primary" id="runAiBtn">✦ Generate Sub-Ideas</button>
+     <button class="danger" id="cancelAiBtn" hidden style="flex:0 0 auto">Stop</button>
+    </div>
+   </section>
+
+   <!-- Loading & Error Feedback -->
+   <div id="aiLoadingBox" hidden>
+    <div class="loader-bar"></div>
+    <p class="mini" id="aiLoadingText" style="margin-top:6px;color:var(--cyan)">Synthesizing with Gemini…</p>
+   </div>
+
+   <div id="aiErrorBox" class="ai-card warn" hidden role="alert">
+    <div class="ai-card-head">
+     <span class="ai-card-title">⚠ AI Request Issue</span>
+     <button class="sm" id="dismissErrorBtn">Dismiss</button>
+    </div>
+    <div class="ai-card-body" id="aiErrorText"></div>
+   </div>
+
+   <!-- AI Output & Confirmation Workbench -->
+   <section id="aiResultsSection" style="display:flex;flex-direction:column;gap:10px">
+    <div class="empty" id="aiEmptyPrompt">
+     Pick a node on the canvas and click <b>Generate</b>, or choose any suggested prompt chip above. AI suggestions always wait for your review before modifying the mind map.
+    </div>
+    <div id="aiResultsContainer" style="display:flex;flex-direction:column;gap:9px"></div>
+   </section>
+  </div>
+ </aside>
+</main>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const canvas=$('canvas'), ctx=canvas.getContext('2d'), stage=$('stage');
+const colors={General:'#46e6f4',Study:'#a78bfa',Product:'#f472d0',Research:'#ffd166',Action:'#83f2b0',Question:'#fb923c'};
+const VALID_TAGS=Object.keys(colors);
+const STORE='gravity-notes-workspace-v1';
+
+// Core workspace state (preserved from original app)
+let nodes=[],links=[],selected=null,gravity=true,connectMode=false,connectFrom=null,dragging=null,pointer={x:0,y:0},lastTime=0,anim=0,view={x:0,y:0,scale:1};
+let width=1,height=1,dpr=1,nodeCounter=0;
+
+// AI Copilot state (strictly separated from localStorage persistence)
+let memoryOnlyApiKey = ''; // NEVER persisted to localStorage or exports
+let proxyAvailable = false;
+let currentAiTab = 'brainstorm';
+let activeAbortController = null;
+let aiUndoStack = [];
+let canvasPreview = { nodes: [], links: [], clusterRings: [] };
+let lastExportableMarkdown = '';
+
+const FALLBACK_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-flash-latest'
+];
+
+const round=(n,d=1)=>Math.round(n*d)/d;
+function makeNode(x,y,title='New idea',tag='General',body='') {
+  nodeCounter++;
+  const safeTag = VALID_TAGS.includes(tag) ? tag : 'General';
+  return {id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),x,y,vx:0,vy:0,title:String(title||'New idea').slice(0,90),tag:safeTag,body:String(body||'').slice(0,2500),priority:1,r:34,phase:Math.random()*Math.PI*2};
+}
+
+function demo(){
+  nodes=[];links=[];nodeCounter=0;clearCanvasPreview();
+  const cx=0,cy=0;
+  const a=makeNode(cx,cy-65,'Build a useful product','Product','Pick one painful problem and make the smallest version that solves it.');
+  const b=makeNode(cx-190,cy-105,'Find a real problem','Research','Interview a few people. Write down repeated frustrations.');
+  const c=makeNode(cx+180,cy-105,'Prototype the core loop','Action','Make one feature work end-to-end before adding extras.');
+  const d=makeNode(cx-125,cy+125,'Study in focus blocks','Study','Use 25 minutes of focused work and take a short break.');
+  const e=makeNode(cx+135,cy+135,'What would users pay for?','Question','Which outcome is valuable enough that someone might pay?');
+  nodes.push(a,b,c,d,e);
+  links=[{a:a.id,b:b.id},{a:a.id,b:c.id},{a:a.id,b:e.id},{a:d.id,b:b.id},{a:e.id,b:c.id}];
+  selected=a.id;
+  syncEditor();
+  save();
+}
+
+// Security guarantee: save() only serializes graph state, never secrets
+function save(){
+  try{
+    const safeNodes = nodes.map(({id,x,y,vx,vy,title,tag,body,priority,r,phase})=>({id,x,y,vx,vy,title,tag,body,priority,r,phase}));
+    const safeLinks = links.map(({a,b})=>({a,b}));
+    localStorage.setItem(STORE,JSON.stringify({nodes:safeNodes,links:safeLinks,view,gravity,nodeCounter}));
+    $('saveStatus').textContent='● Saved locally · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    $('saveStatus').textContent='● Local save unavailable';
+  }
+}
+
+function load(){
+  try{
+    const raw=localStorage.getItem(STORE);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!Array.isArray(d.nodes)||!Array.isArray(d.links))return false;
+    nodes=d.nodes;links=d.links;view=d.view||view;gravity=d.gravity!==false;nodeCounter=d.nodeCounter||nodes.length;
+    $('gravityBtn').classList.toggle('active',gravity);
+    $('gravityBtn').textContent=gravity?'✦ Gravity on':'Ⅱ Gravity off';
+    selected=nodes[0]?.id||null;
+    syncEditor();
+    return true;
+  }catch(e){return false;}
+}
+
+function pushUndoSnapshot(label='AI change'){
+  const snap = {
+    label,
+    at: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    selected,
+    nodeCounter,
+    nodes: JSON.parse(JSON.stringify(nodes)),
+    links: JSON.parse(JSON.stringify(links))
+  };
+  aiUndoStack.push(snap);
+  if(aiUndoStack.length>20) aiUndoStack.shift();
+  syncUndoBtn();
+}
+
+function undoLastAiChange(){
+  if(!aiUndoStack.length) return;
+  const snap = aiUndoStack.pop();
+  nodes = snap.nodes;
+  links = snap.links;
+  nodeCounter = snap.nodeCounter;
+  selected = byId(snap.selected) ? snap.selected : (nodes[0]?.id || null);
+  clearCanvasPreview();
+  syncUndoBtn();
+  syncEditor();
+  save();
+  toast('Undid: ' + snap.label);
+}
+
+function syncUndoBtn(){
+  const btn = $('undoAiBtn');
+  btn.disabled = aiUndoStack.length === 0;
+  btn.textContent = aiUndoStack.length ? `↶ Undo AI (${aiUndoStack.length})` : '↶ Undo AI';
+}
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  width=Math.max(1,r.width);
+  height=Math.max(1,r.height);
+  canvas.width=Math.floor(width*dpr);
+  canvas.height=Math.floor(height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!nodes.length)demo();
+}
+
+function screen(n){return{x:(n.x+view.x)*view.scale+width/2,y:(n.y+view.y)*view.scale+height/2};}
+function world(x,y){return{x:(x-width/2)/view.scale-view.x,y:(y-height/2)/view.scale-view.y};}
+function byId(id){return nodes.find(n=>n.id===id);}
+function nodeAt(x,y){
+  for(let i=nodes.length-1;i>=0;i--){
+    let p=screen(nodes[i]);
+    if(Math.hypot(p.x-x,p.y-y)<nodes[i].r*view.scale+4)return nodes[i];
+  }
+  return null;
+}
+function linked(a,b){return links.some(l=>(l.a===a&&l.b===b)||(l.a===b&&l.b===a));}
+function addNode(x=width/2,y=height/2,title='New idea'){
+  const p=world(x,y),n=makeNode(p.x,p.y,title);
+  nodes.push(n);selected=n.id;syncEditor();save();return n;
+}
+function connect(a,b){
+  if(a===b||linked(a,b))return;
+  links.push({a,b});toast('Connection added');save();syncStats();
+}
+function toast(msg){
+  const el=$('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2100);
+}
+function syncStats(){$('nodeCount').textContent=nodes.length;$('linkCount').textContent=links.length;}
+
+function syncEditor(){
+  const n=byId(selected);
+  $('emptyState').hidden=!!n;
+  $('editor').hidden=!n;
+  $('selectedPill').textContent=n?'EDITING':'NONE';
+  if(n){
+    $('titleInput').value=n.title;
+    $('bodyInput').value=n.body;
+    $('tagInput').value=n.tag;
+    $('priorityInput').value=String(n.priority||1);
+  }
+  syncStats();
+  syncAiContext();
+}
+
+function updateSelected(field,val){
+  const n=byId(selected);if(!n)return;
+  n[field]=val;if(field==='title')n.title=val;
+  syncAiContext();
+  save();
+}
+
+function deleteSelected(){
+  if(!selected)return;
+  const n=byId(selected);
+  if(n && !confirm(`Delete node "${n.title||'Untitled'}" and its connections?`)) return;
+  nodes=nodes.filter(n=>n.id!==selected);
+  links=links.filter(l=>l.a!==selected&&l.b!==selected);
+  selected=nodes[0]?.id||null;
+  syncEditor();save();
+}
+
+function duplicateSelected(){
+  const n=byId(selected);if(!n)return;
+  const cp=makeNode(n.x+45,n.y+35,n.title+' copy',n.tag,n.body);
+  cp.priority=n.priority;nodes.push(cp);selected=cp.id;syncEditor();save();
+}
+
+function simulate(dt){
+  if(!gravity||dragging)return;
+  const dtScale=Math.min(2,dt/16.67||1);
+  for(let i=0;i<nodes.length;i++){
+    const a=nodes[i];let fx=0,fy=0;
+    fx+=-a.x*.0009;fy+=-a.y*.0009;
+    for(let j=i+1;j<nodes.length;j++){
+      const b=nodes[j];
+      let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001;
+      const tagSame=a.tag===b.tag&&$('sameTag').checked;
+      const repulsion=$('repel').checked?(tagSame?1500:2600):500;
+      let f=repulsion/(d*d);
+      if(tagSame)f-=0.018;
+      if($('priorityGravity').checked){f+=(b.priority-a.priority)*.0004;}
+      fx-=dx*f;fy-=dy*f;
+      if(tagSame){fx+=dx*.00015;fy+=dy*.00015;}
+    }
+    for(const l of links){
+      if(l.a!==a.id&&l.b!==a.id)continue;
+      const b=byId(l.a===a.id?l.b:l.a);
+      if(!b)continue;
+      const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001;
+      const spring=(d-145)*.00055;
+      fx+=dx/d*spring;fy+=dy/d*spring;
+    }
+    a.vx=(a.vx+fx*dtScale)*.91;a.vy=(a.vy+fy*dtScale)*.91;
+    const max=2.3;
+    a.vx=Math.max(-max,Math.min(max,a.vx));
+    a.vy=Math.max(-max,Math.min(max,a.vy));
+    a.x+=a.vx*dtScale;a.y+=a.vy*dtScale;
+  }
+}
+
+function clearCanvasPreview(){
+  canvasPreview = { nodes: [], links: [], clusterRings: [] };
+  $('previewBanner').hidden = true;
+}
+
+function draw(){
+  ctx.clearRect(0,0,width,height);
+  ctx.fillStyle='#080a12';ctx.fillRect(0,0,width,height);
+  // subtle grid
+  ctx.save();ctx.globalAlpha=.36;ctx.strokeStyle='#182039';ctx.lineWidth=1;
+  const sp=34*view.scale,ox=((width/2+view.x*view.scale)%sp+sp)%sp,oy=((height/2+view.y*view.scale)%sp+sp)%sp;
+  ctx.beginPath();
+  for(let x=ox;x<width;x+=sp){ctx.moveTo(x,0);ctx.lineTo(x,height);}
+  for(let y=oy;y<height;y+=sp){ctx.moveTo(0,y);ctx.lineTo(width,y);}
+  ctx.stroke();ctx.restore();
+
+  // AI Preview Cluster Halos
+  for(const ring of canvasPreview.clusterRings){
+    const n=byId(ring.nodeId);if(!n)continue;
+    const p=screen(n),r=(n.r+12)*view.scale;
+    ctx.save();
+    ctx.strokeStyle=ring.color||'#f472d0';
+    ctx.lineWidth=2;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.stroke();
+    ctx.font=`600 ${Math.max(9,10*view.scale)}px system-ui`;
+    ctx.fillStyle=ring.color||'#f472d0';
+    ctx.textAlign='center';
+    ctx.fillText(ring.label,p.x,p.y-r-6);
+    ctx.restore();
+  }
+
+  // existing links
+  for(const l of links){
+    const a=byId(l.a),b=byId(l.b);if(!a||!b)continue;
+    const p=screen(a),q=screen(b);
+    ctx.save();
+    ctx.strokeStyle=(a.id===selected||b.id===selected)?'#5fe7f5':'#38425f';
+    ctx.lineWidth=(a.id===selected||b.id===selected)?2:1.25;
+    ctx.setLineDash([4,5]);
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+  }
+
+  // AI Preview Links
+  for(const pl of canvasPreview.links){
+    const a=byId(pl.a),b=byId(pl.b)||pl.targetPos;
+    if(!a||!b)continue;
+    const p=screen(a),q=screen(b);
+    ctx.save();
+    ctx.strokeStyle='#f472d0';
+    ctx.lineWidth=2;
+    ctx.setLineDash([3,4]);
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+    ctx.restore();
+  }
+
+  // AI Preview Ghost Nodes
+  for(const pn of canvasPreview.nodes){
+    const p=screen(pn),r=30*view.scale,color=colors[pn.tag]||colors.General;
+    ctx.save();
+    ctx.globalAlpha=0.78;
+    ctx.fillStyle='#191330';
+    ctx.strokeStyle=color;
+    ctx.lineWidth=2;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font=`600 ${Math.max(9,11*view.scale)}px system-ui`;
+    ctx.fillStyle='#fce7f3';ctx.textAlign='center';ctx.textBaseline='middle';
+    let t=pn.title||'Preview';
+    while(ctx.measureText(t).width>r*1.6&&t.length>5)t=t.slice(0,-2)+'…';
+    ctx.fillText(t,p.x,p.y);
+    ctx.restore();
+  }
+
+  const filter=$('tagFilter').value;
+  for(const n of nodes){
+    const p=screen(n),r=n.r*view.scale,color=colors[n.tag]||colors.General;
+    const dim=filter!=='all'&&filter!==n.tag;
+    ctx.save();ctx.globalAlpha=dim?.16:1;
+    const glow=ctx.createRadialGradient(p.x,p.y,2,p.x,p.y,r*1.65);
+    glow.addColorStop(0,color+'38');glow.addColorStop(1,color+'00');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(p.x,p.y,r*1.65,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#11182a';ctx.strokeStyle=color;ctx.lineWidth=n.id===selected?2.8:1.5;
+    ctx.shadowColor=color;ctx.shadowBlur=n.id===selected?17:7;
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+    if(n.priority>=2){
+      ctx.fillStyle=n.priority===3?'#fb7185':'#ffd166';
+      ctx.beginPath();ctx.arc(p.x+r*.67,p.y-r*.67,4.2*view.scale,0,Math.PI*2);ctx.fill();
+    }
+    const title=n.title||'Untitled';
+    ctx.font=`600 ${Math.max(10,Math.min(13,12*view.scale))}px system-ui`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#eef4ff';
+    let maxw=r*1.65;let text=title;
+    while(ctx.measureText(text).width>maxw&&text.length>5)text=text.slice(0,-2)+'…';
+    ctx.fillText(text,p.x,p.y);
+    ctx.font=`${Math.max(8,9*view.scale)}px system-ui`;ctx.fillStyle=color;
+    ctx.fillText(n.tag.toUpperCase(),p.x,p.y+r+12*view.scale);
+    ctx.restore();
+  }
+  if(connectMode&&connectFrom){
+    const n=byId(connectFrom);
+    if(n){
+      const p=screen(n);ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);
+      ctx.beginPath();ctx.arc(p.x,p.y,n.r*view.scale+8,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    }
+  }
+}
+
+function frame(t){
+  const dt=lastTime?Math.min(36,t-lastTime):16.67;
+  lastTime=t;simulate(dt);draw();anim=requestAnimationFrame(frame);
+}
+
+function download(name,type,data){
+  const blob=data instanceof Blob?data:new Blob([data],{type});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+
+function markdown(){
+  let out='# Gravity Notes\n\n> A spatial brainstorm exported from Gravity Notes.\n\n## Ideas\n\n';
+  for(const n of nodes){
+    out+=`### ${n.title||'Untitled'}\n\n- **Tag:** ${n.tag}\n- **Priority:** ${['','Normal','High','Critical'][n.priority]||'Normal'}\n`;
+    if(n.body)out+=`\n${n.body.replace(/\n/g,'\n')}\n`;
+    const rel=links.filter(l=>l.a===n.id||l.b===n.id).map(l=>byId(l.a===n.id?l.b:l.a)).filter(Boolean);
+    if(rel.length)out+='\n**Connected to:** '+rel.map(x=>x.title).join(', ')+'\n';
+    out+='\n';
+  }
+  return out;
+}
+
+function payload(){
+  return JSON.stringify({
+    app:'Gravity Notes',
+    version:2,
+    exportedAt:new Date().toISOString(),
+    nodes:nodes.map(({id,x,y,title,tag,body,priority})=>({id,x:round(x,10),y:round(y,10),title,tag,body,priority})),
+    links:links.map(l=>({a:l.a,b:l.b}))
+  },null,2);
+}
+
+// ============================================================================
+// DUPLICATE PROTECTION & WORKSPACE SERIALIZATION HELPERS
+// ============================================================================
+function normalizeTitle(str){
+  return String(str||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+}
+
+function findDuplicateNode(candidateTitle){
+  const norm = normalizeTitle(candidateTitle);
+  if(!norm) return null;
+  for(const n of nodes){
+    const existing = normalizeTitle(n.title);
+    if(existing === norm) return n;
+    if(existing.length > 6 && norm.length > 6 && (existing.includes(norm) || norm.includes(existing))) return n;
+  }
+  return null;
+}
+
+function computeObservedWorkspaceFacts(){
+  const tagCounts = {};
+  const degreeMap = {};
+  nodes.forEach(n => {
+    tagCounts[n.tag] = (tagCounts[n.tag] || 0) + 1;
+    degreeMap[n.id] = 0;
+  });
+  links.forEach(l => {
+    if(degreeMap[l.a] !== undefined) degreeMap[l.a]++;
+    if(degreeMap[l.b] !== undefined) degreeMap[l.b]++;
+  });
+  const isolated = nodes.filter(n => (degreeMap[n.id] || 0) === 0).map(n => n.title);
+  const critical = nodes.filter(n => n.priority === 3).map(n => n.title);
+  const high = nodes.filter(n => n.priority === 2).map(n => n.title);
+  const questions = nodes.filter(n => n.tag === 'Question' || /\?/.test(n.title)).map(n => n.title);
+  const hubs = [...nodes].sort((a,b)=>(degreeMap[b.id]||0)-(degreeMap[a.id]||0)).slice(0,3).filter(n=>degreeMap[n.id]>0).map(n=>`${n.title} (${degreeMap[n.id]} links)`);
+  return {
+    totalNodes: nodes.length,
+    totalLinks: links.length,
+    tagBreakdown: Object.entries(tagCounts).map(([k,v])=>`${k}: ${v}`).join(', ') || 'None',
+    isolatedNodes: isolated,
+    criticalNodes: critical,
+    highPriorityNodes: high,
+    openQuestionNodes: questions,
+    topHubs: hubs
+  };
+}
+
+function buildWorkspaceContextPayload(maxNodes = 60){
+  // Protect against excessively large payloads by prioritizing selected node, neighbors, and high priority nodes
+  const sel = byId(selected);
+  const neighborIds = new Set();
+  if(sel){
+    links.forEach(l => {
+      if(l.a === sel.id) neighborIds.add(l.b);
+      if(l.b === sel.id) neighborIds.add(l.a);
+    });
+  }
+  const sorted = [...nodes].sort((a,b) => {
+    if(sel && a.id === sel.id) return -1;
+    if(sel && b.id === sel.id) return 1;
+    const aN = neighborIds.has(a.id) ? 1 : 0;
+    const bN = neighborIds.has(b.id) ? 1 : 0;
+    if(aN !== bN) return bN - aN;
+    return (b.priority || 1) - (a.priority || 1);
+  });
+  const sliced = sorted.slice(0, maxNodes);
+  const includedIds = new Set(sliced.map(n => n.id));
+  const relevantLinks = links
+    .filter(l => includedIds.has(l.a) && includedIds.has(l.b))
+    .map(l => ({
+      fromId: l.a,
+      fromTitle: byId(l.a)?.title || l.a,
+      toId: l.b,
+      toTitle: byId(l.b)?.title || l.b
+    }));
+
+  return {
+    truncated: nodes.length > maxNodes,
+    totalWorkspaceNodes: nodes.length,
+    selectedNode: sel ? {
+      id: sel.id,
+      title: sel.title,
+      tag: sel.tag,
+      priority: sel.priority,
+      priorityLabel: ['','Normal','High','Critical'][sel.priority] || 'Normal',
+      body: sel.body,
+      connectedNeighbors: [...neighborIds].map(id => byId(id)?.title).filter(Boolean)
+    } : null,
+    observedMetrics: computeObservedWorkspaceFacts(),
+    nodes: sliced.map(n => ({
+      id: n.id,
+      title: n.title,
+      tag: n.tag,
+      priority: n.priority,
+      priorityLabel: ['','Normal','High','Critical'][n.priority] || 'Normal',
+      body: (n.body || '').slice(0, 500)
+    })),
+    connections: relevantLinks
+  };
+}
+
+// ============================================================================
+// AI COPILOT UI & PROMPT MANAGEMENT
+// ============================================================================
+const TOOL_META = {
+  brainstorm: {
+    heading: 'A. Brainstorm Connected Sub-Ideas',
+    reqPill: 'Selected Node',
+    btnText: '✦ Generate Sub-Ideas',
+    desc: 'Generate 3–7 specific sub-ideas branching from the selected node. Review and approve before inserting onto the canvas.',
+    chips: (n) => n ? [
+      `Break "${n.title}" into concrete actionable steps`,
+      `What are hidden risks or edge cases for "${n.title}"?`,
+      `Brainstorm unconventional angles for "${n.title}"`,
+      `What user questions should we test for "${n.title}"?`
+    ] : ['Select any node on the canvas to brainstorm sub-ideas']
+  },
+  improve: {
+    heading: 'B. Improve & Sharpen Selected Idea',
+    reqPill: 'Selected Node',
+    btnText: '⚡ Improve Selected Idea',
+    desc: 'Turn a vague thought into a specific title, clear description, intended outcome, and concrete next action with Before/After review.',
+    chips: (n) => n ? [
+      `Make "${n.title}" more specific and outcome-driven`,
+      `Rewrite "${n.title}" for an MVP launch scope`,
+      `Define measurable success criteria for "${n.title}"`
+    ] : ['Select a node on the canvas to sharpen and improve it']
+  },
+  understand: {
+    heading: 'C. Understand My Workspace',
+    reqPill: 'Full Graph',
+    btnText: '◎ Analyze Workspace',
+    desc: 'Ask deep questions about your mind map. Strictly separates Observed Workspace Facts from AI-Generated Suggestions.',
+    chips: () => [
+      'What are the main themes in my brainstorm?',
+      'Which ideas are related but not connected?',
+      'What important questions have I not answered?',
+      'Which ideas should I work on first?',
+      'What dependencies might block this project?'
+    ]
+  },
+  cluster: {
+    heading: 'D. Smart Semantic Clustering',
+    reqPill: 'All Notes',
+    btnText: '❖ Run Semantic Cluster Analysis',
+    desc: 'Analyzes the semantic meaning of notes (beyond surface tags), recommends thematic groups, better tags, and missing links with live canvas preview.',
+    chips: () => [
+      'Group notes by deep semantic meaning and suggest better tags',
+      'Find cross-functional links between Research, Product, and Action nodes'
+    ]
+  },
+  plan: {
+    heading: 'E. Turn Ideas into an Action Plan',
+    reqPill: 'Selected / Graph',
+    btnText: '▤ Build Structured Action Plan',
+    desc: 'Convert selected ideas and their neighborhood into prioritized tasks, dependencies, milestones, and measurable completion criteria.',
+    chips: (n) => [
+      n ? `Build an execution plan centered on "${n.title}"` : 'Convert the entire workspace into a phased milestone plan',
+      'Prioritize critical-path tasks and unblockers first'
+    ]
+  },
+  assistant: {
+    heading: 'F. Context-Aware Workspace Assistant',
+    reqPill: 'Streaming SSE',
+    btnText: '💬 Ask Workspace Copilot',
+    desc: 'Ask natural-language questions about your workspace with live streaming responses, canvas node insertion, and Markdown plan export.',
+    chips: (n) => [
+      n ? `How does "${n.title}" connect to the rest of my map?` : 'Summarize my workspace into an executive pitch',
+      'Critique this brainstorm: what is the weakest assumption?',
+      'Suggest 3 high-leverage nodes that would bridge my clusters'
+    ]
+  }
+};
+
+function syncAiContext(){
+  const n = byId(selected);
+  $('aiFocusTitle').textContent = n ? (n.title || 'Untitled') : `Entire Workspace (${nodes.length} nodes)`;
+  $('aiFocusTag').textContent = n ? `${n.tag} · P${n.priority}` : 'ALL';
+  renderSuggestedChips();
+}
+
+function renderSuggestedChips(){
+  const meta = TOOL_META[currentAiTab];
+  const n = byId(selected);
+  const list = $('suggestedPrompts');
+  list.innerHTML = '';
+  const chips = meta.chips(n);
+  chips.forEach(text => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.textContent = text;
+    btn.onclick = () => {
+      if(currentAiTab === 'brainstorm'){
+        if(n) $('brainstormAngle').value = text;
+      } else {
+        $('aiPromptInput').value = text;
+      }
+      runCurrentAiTool();
+    };
+    list.appendChild(btn);
+  });
+}
+
+function switchAiTab(tab){
+  currentAiTab = tab;
+  document.querySelectorAll('.ai-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  const meta = TOOL_META[tab];
+  $('toolHeading').textContent = meta.heading;
+  $('toolRequirementPill').textContent = meta.reqPill;
+  $('toolDescription').textContent = meta.desc;
+  $('runAiBtn').textContent = meta.btnText;
+  $('brainstormControls').hidden = (tab !== 'brainstorm');
+  $('promptInputBox').hidden = (tab === 'brainstorm' || tab === 'cluster');
+  clearCanvasPreview();
+  renderSuggestedChips();
+}
+
+document.querySelectorAll('.ai-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchAiTab(btn.dataset.tab));
+});
+
+// ============================================================================
+// GEMINI API CLIENT (PROXY + MEMORY-ONLY BYOK + STREAMING + AUTO-FALLBACK)
+// ============================================================================
+async function checkServerProxy(){
+  try{
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    const res = await fetch('/api/ai/health', { signal: ctrl.signal });
+    clearTimeout(timer);
+    if(res.ok){
+      const data = await res.json();
+      proxyAvailable = !!data.configured;
+      $('proxyStatusText').textContent = proxyAvailable
+        ? `● Proxy ready (${data.defaultModel || 'GEMINI_API_KEY set'})`
+        : '○ Proxy running, but GEMINI_API_KEY env not set';
+    } else {
+      proxyAvailable = false;
+      $('proxyStatusText').textContent = '○ Static mode (no /api/ai server detected)';
+    }
+  }catch(e){
+    proxyAvailable = false;
+    $('proxyStatusText').textContent = '○ Static host mode (run node server.js for proxy)';
+  }
+  updateAiStatusIndicator();
+}
+
+function updateAiStatusIndicator(){
+  const mode = $('aiConnMode').value;
+  const dot = $('aiStatusDot');
+  const badge = $('aiModeBadge');
+  dot.className = 'status-dot';
+  if(mode === 'proxy' && proxyAvailable){
+    dot.classList.add('ready');
+    badge.textContent = 'Server Proxy';
+    badge.className = 'pill green';
+  } else if(mode === 'byok' && memoryOnlyApiKey){
+    dot.classList.add('byok');
+    badge.textContent = 'BYOK (RAM Only)';
+    badge.className = 'pill amber';
+  } else {
+    badge.textContent = 'Unconfigured';
+    badge.className = 'pill';
+  }
+}
+
+$('aiConnMode').addEventListener('change', () => {
+  const isByok = $('aiConnMode').value === 'byok';
+  $('byokBox').hidden = !isByok;
+  updateAiStatusIndicator();
+});
+
+$('aiModelSelect').addEventListener('change', () => {
+  $('activeModelPill').textContent = $('aiModelSelect').value;
+});
+
+$('applyKeyBtn').addEventListener('click', () => {
+  const val = $('byokInput').value.trim();
+  if(!val){
+    toast('Enter a valid Gemini API key first');
+    return;
+  }
+  memoryOnlyApiKey = val;
+  $('byokInput').value = '';
+  $('byokInput').placeholder = 'Key active in RAM (never saved to disk)';
+  updateAiStatusIndicator();
+  toast('API key stored in memory only for this tab session');
+});
+
+$('clearKeyBtn').addEventListener('click', () => {
+  memoryOnlyApiKey = '';
+  $('byokInput').value = '';
+  $('byokInput').placeholder = 'AIzaSy…';
+  updateAiStatusIndicator();
+  toast('Memory API key wiped');
+});
+
+$('checkProxyBtn').addEventListener('click', checkServerProxy);
+
+function buildFallbackChain(preferred){
+  return [preferred, ...FALLBACK_MODELS.filter(m => m !== preferred)];
+}
+
+function formatApiError(status, errBody, modelTried){
+  const msg = errBody?.error?.message || errBody?.message || String(errBody || '');
+  if(status === 401 || status === 403){
+    return `Authentication failed (${status}): Your Gemini API key was rejected or lacks permission. Check your key in AI Settings.`;
+  }
+  if(status === 429){
+    return `Rate limit or quota reached (429) on ${modelTried}. Wait 15–30 seconds or switch to gemini-3.5-flash-lite in AI Settings.`;
+  }
+  if(status === 404){
+    return `Model "${modelTried}" returned 404 NOT_FOUND for this project key. Try selecting gemini-3.8-flash or gemini-3.5-flash-lite.`;
+  }
+  return `Gemini API Error (${status || 'Network'}): ${msg || 'Request could not be completed.'}`;
+}
+
+async function callGeminiStructured({ systemInstruction, userPrompt, responseSchema }){
+  const mode = $('aiConnMode').value;
+  const preferredModel = $('aiModelSelect').value;
+
+  if(mode === 'proxy'){
+    if(!proxyAvailable){
+      await checkServerProxy();
+      if(!proxyAvailable){
+        throw new Error('Server proxy (/api/ai) is not configured or not running. Either start the backend with `GEMINI_API_KEY=... node server.js` or switch Connection Mode to "Bring Your Own API Key (Memory-Only)" in ⚙ AI Settings.');
+      }
+    }
+    const res = await fetch('/api/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: activeAbortController?.signal,
+      body: JSON.stringify({
+        model: preferredModel,
+        systemInstruction,
+        userPrompt,
+        responseSchema
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if(!res.ok){
+      throw new Error(formatApiError(res.status, data, preferredModel));
+    }
+    if(data.modelUsed && data.modelUsed !== preferredModel){
+      $('activeModelPill').textContent = data.modelUsed;
+      toast(`Responded via fallback model: ${data.modelUsed}`);
+    }
+    return data.result;
+  }
+
+  // Memory-Only BYOK Mode
+  if(!memoryOnlyApiKey){
+    $('aiConfigDetails').open = true;
+    throw new Error('No API key configured in memory. Open "⚙ AI Connection & Model Settings" above and set your Gemini API key (held in RAM only), or run `node server.js` with GEMINI_API_KEY.');
+  }
+
+  const chain = buildFallbackChain(preferredModel);
+  let lastError = null;
+
+  for(const model of chain){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const body = {
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature: 0.4,
+        responseMimeType: 'application/json',
+        responseSchema
+      }
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': memoryOnlyApiKey
+      },
+      signal: activeAbortController?.signal,
+      body: JSON.stringify(body)
+    });
+
+    const rawJson = await res.json().catch(() => ({}));
+    if([404, 500, 503].includes(res.status)){
+      lastError = new Error(formatApiError(res.status, rawJson, model));
+      continue; // try another candidate if this model is missing or temporarily unavailable
+    }
+    if(!res.ok){
+      throw new Error(formatApiError(res.status, rawJson, model));
+    }
+    const text = rawJson?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+    if(!text){
+      throw new Error('Gemini returned an empty response candidate.');
+    }
+    if(model !== preferredModel){
+      $('activeModelPill').textContent = model;
+      toast(`Auto-switched to supported model: ${model}`);
+    }
+    return safeParseJson(text);
+  }
+  throw lastError || new Error('All candidate Gemini models returned 404 for this key.');
+}
+
+async function callGeminiStream({ systemInstruction, userPrompt, onChunk }){
+  const mode = $('aiConnMode').value;
+  const preferredModel = $('aiModelSelect').value;
+
+  if(mode === 'proxy'){
+    if(!proxyAvailable){
+      await checkServerProxy();
+      if(!proxyAvailable){
+        throw new Error('Server proxy (/api/ai) is not configured. Start `node server.js` with GEMINI_API_KEY or switch to BYOK mode in ⚙ AI Settings.');
+      }
+    }
+    const res = await fetch('/api/ai/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: activeAbortController?.signal,
+      body: JSON.stringify({ model: preferredModel, systemInstruction, userPrompt })
+    });
+    if(!res.ok){
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(formatApiError(res.status, errData, preferredModel));
+    }
+    return await consumeSseStream(res.body, onChunk);
+  }
+
+  if(!memoryOnlyApiKey){
+    $('aiConfigDetails').open = true;
+    throw new Error('No API key in memory. Open "⚙ AI Connection & Model Settings" to set a session key or configure the server proxy.');
+  }
+
+  const chain = buildFallbackChain(preferredModel);
+  let lastError = null;
+  for(const model of chain){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': memoryOnlyApiKey
+      },
+      signal: activeAbortController?.signal,
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.5 }
+      })
+    });
+    if([404, 500, 503].includes(res.status)){
+      const errData = await res.json().catch(() => ({}));
+      lastError = new Error(formatApiError(res.status, errData, model));
+      continue;
+    }
+    if(!res.ok){
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(formatApiError(res.status, errData, model));
+    }
+    if(model !== preferredModel){
+      $('activeModelPill').textContent = model;
+    }
+    return await consumeSseStream(res.body, onChunk);
+  }
+  throw lastError || new Error('Streaming endpoint unavailable for all fallback models.');
+}
+
+async function consumeSseStream(readableStream, onChunk){
+  const reader = readableStream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let fullText = '';
+  while(true){
+    const { done, value } = await reader.read();
+    if(done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for(const line of lines){
+      const trimmed = line.trim();
+      if(!trimmed.startsWith('data:')) continue;
+      const jsonStr = trimmed.slice(5).trim();
+      if(!jsonStr || jsonStr === '[DONE]') continue;
+      try{
+        const parsed = JSON.parse(jsonStr);
+        const chunkText = parsed?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || parsed?.chunk || '';
+        if(chunkText){
+          fullText += chunkText;
+          onChunk(fullText);
+        }
+      }catch(_e){}
+    }
+  }
+  return fullText;
+}
+
+function safeParseJson(raw){
+  if(typeof raw === 'object' && raw !== null) return raw;
+  const cleaned = String(raw).trim().replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+  try{
+    return JSON.parse(cleaned);
+  }catch(e){
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if(match) return JSON.parse(match[0]);
+    throw new Error('AI returned an invalid JSON structure. Please try again.');
+  }
+}
+
+// ============================================================================
+// EXECUTION OF THE 6 AI COPILOT TOOLS (A–F)
+// ============================================================================
+function setAiBusy(busy, statusText = 'Synthesizing with Gemini…'){
+  $('aiLoadingBox').hidden = !busy;
+  $('aiLoadingText').textContent = statusText;
+  $('runAiBtn').disabled = busy;
+  $('cancelAiBtn').hidden = !busy;
+  const dot = $('aiStatusDot');
+  if(busy) dot.classList.add('busy');
+  else updateAiStatusIndicator();
+}
+
+function showAiError(msg){
+  $('aiErrorBox').hidden = false;
+  $('aiErrorText').textContent = msg;
+}
+
+$('dismissErrorBtn').onclick = () => { $('aiErrorBox').hidden = true; };
+$('cancelAiBtn').onclick = () => {
+  if(activeAbortController){
+    activeAbortController.abort();
+    activeAbortController = null;
+  }
+  setAiBusy(false);
+  toast('AI request cancelled');
+};
+$('clearPreviewBtn').onclick = clearCanvasPreview;
+
+async function runCurrentAiTool(){
+  $('aiErrorBox').hidden = true;
+  clearCanvasPreview();
+
+  if((currentAiTab === 'brainstorm' || currentAiTab === 'improve') && !byId(selected)){
+    showAiError('Please select an idea node on the canvas first so the AI knows which idea to work on.');
+    return;
+  }
+
+  activeAbortController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    if(activeAbortController) activeAbortController.abort();
+  }, 45000);
+
+  try{
+    setAiBusy(true, `Running ${TOOL_META[currentAiTab].heading}…`);
+    const ctxPayload = buildWorkspaceContextPayload();
+
+    if(currentAiTab === 'brainstorm'){
+      await runBrainstormTool(ctxPayload);
+    } else if(currentAiTab === 'improve'){
+      await runImproveTool(ctxPayload);
+    } else if(currentAiTab === 'understand'){
+      await runUnderstandTool(ctxPayload);
+    } else if(currentAiTab === 'cluster'){
+      await runClusterTool(ctxPayload);
+    } else if(currentAiTab === 'plan'){
+      await runActionPlanTool(ctxPayload);
+    } else if(currentAiTab === 'assistant'){
+      await runStreamingAssistantTool(ctxPayload);
+    }
+  }catch(err){
+    if(err.name === 'AbortError'){
+      showAiError('Request timed out or was cancelled.');
+    } else {
+      showAiError(err.message || String(err));
+    }
+  }finally{
+    clearTimeout(timeoutId);
+    activeAbortController = null;
+    setAiBusy(false);
+  }
+}
+
+$('runAiBtn').addEventListener('click', runCurrentAiTool);
+
+// --- TOOL A: BRAINSTORM SUB-IDEAS ---
+async function runBrainstormTool(ctxPayload){
+  const parent = byId(selected);
+  const count = Number($('subIdeaCount').value) || 5;
+  const angle = $('brainstormAngle').value.trim();
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      parentSummary: { type: 'STRING' },
+      ideas: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            title: { type: 'STRING' },
+            body: { type: 'STRING' },
+            tag: { type: 'STRING', enum: VALID_TAGS },
+            priority: { type: 'INTEGER' },
+            rationale: { type: 'STRING' }
+          },
+          required: ['title', 'body', 'tag', 'priority', 'rationale']
+        }
+      }
+    },
+    required: ['ideas']
+  };
+
+  const result = await callGeminiStructured({
+    systemInstruction: `You are an expert product & research brainstorming copilot inside Gravity Notes. Generate exactly ${count} distinct, non-duplicate, high-value sub-ideas connected to the user's selected node. Allowed tags: ${VALID_TAGS.join(', ')}. Priority must be 1 (Normal), 2 (High), or 3 (Critical). Keep titles concise (<70 chars) and concrete.`,
+    userPrompt: JSON.stringify({
+      task: `Generate ${count} sub-ideas for selected node "${parent.title}"`,
+      focusAngle: angle || 'Diverse, actionable, high-leverage sub-ideas',
+      selectedNode: ctxPayload.selectedNode,
+      existingWorkspaceTitles: ctxPayload.nodes.map(n => n.title)
+    }),
+    responseSchema: schema
+  });
+
+  const ideas = Array.isArray(result?.ideas) ? result.ideas.slice(0, 7) : [];
+  renderBrainstormReview(parent, ideas);
+}
+
+function renderBrainstormReview(parent, ideas){
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  if(!ideas.length){
+    box.innerHTML = `<div class="empty">No sub-ideas returned. Try adjusting your focus prompt.</div>`;
+    return;
+  }
+
+  // Set up canvas ghost node previews around parent
+  const ghostNodes = [];
+  const ghostLinks = [];
+  ideas.forEach((item, idx) => {
+    const angle = (idx / ideas.length) * Math.PI * 2 - Math.PI / 2;
+    const gx = parent.x + Math.cos(angle) * 165;
+    const gy = parent.y + Math.sin(angle) * 165;
+    const ghost = { x: gx, y: gy, title: item.title, tag: VALID_TAGS.includes(item.tag) ? item.tag : 'General' };
+    ghostNodes.push(ghost);
+    ghostLinks.push({ a: parent.id, targetPos: ghost });
+  });
+  canvasPreview = { nodes: ghostNodes, links: ghostLinks, clusterRings: [] };
+  $('previewBanner').hidden = false;
+
+  const headerCard = document.createElement('div');
+  headerCard.className = 'ai-card';
+  headerCard.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">✦ Proposed Sub-Ideas for "${escapeHtml(parent.title)}"</span>
+      <span class="pill cyan">${ideas.length} items</span>
+    </div>
+    <div class="ai-card-body">Review and uncheck any ideas you don't want. Ghost previews are shown on the canvas.</div>
+  `;
+  box.appendChild(headerCard);
+
+  const checks = [];
+  ideas.forEach((idea, i) => {
+    const dup = findDuplicateNode(idea.title);
+    const card = document.createElement('div');
+    card.className = 'ai-card' + (dup ? ' warn' : '');
+    const safeTag = VALID_TAGS.includes(idea.tag) ? idea.tag : 'General';
+    const prio = [1,2,3].includes(Number(idea.priority)) ? Number(idea.priority) : 1;
+
+    card.innerHTML = `
+      <label class="ai-card-head" style="cursor:pointer">
+        <span class="ai-card-title">
+          <input type="checkbox" data-idx="${i}" ${dup ? '' : 'checked'} />
+          <span>${escapeHtml(idea.title)}</span>
+        </span>
+        <span class="pill">${safeTag} · P${prio}</span>
+      </label>
+      ${dup ? `<div class="mini" style="color:#fda4af">⚠ Similar node already exists: "${escapeHtml(dup.title)}" (unchecked by default)</div>` : ''}
+      <div class="ai-card-body">${escapeHtml(idea.body)}</div>
+      <div class="mini">Why: ${escapeHtml(idea.rationale || '')}</div>
+    `;
+    box.appendChild(card);
+    checks.push({ checkbox: card.querySelector('input'), idea: { ...idea, tag: safeTag, priority: prio } });
+  });
+
+  const actionRow = document.createElement('div');
+  actionRow.className = 'row';
+  const insertBtn = document.createElement('button');
+  insertBtn.className = 'primary';
+  insertBtn.textContent = '＋ Insert Approved Sub-Ideas';
+  insertBtn.onclick = () => {
+    const chosen = checks.filter(c => c.checkbox.checked).map(c => c.idea);
+    if(!chosen.length){
+      toast('Select at least one sub-idea to insert');
+      return;
+    }
+    pushUndoSnapshot(`Brainstorm (${chosen.length} nodes)`);
+    chosen.forEach((item, idx) => {
+      const ang = (idx / chosen.length) * Math.PI * 2 - Math.PI / 3;
+      const nx = parent.x + Math.cos(ang) * 160 + (Math.random() - 0.5) * 15;
+      const ny = parent.y + Math.sin(ang) * 160 + (Math.random() - 0.5) * 15;
+      const created = makeNode(nx, ny, item.title, item.tag, item.body);
+      created.priority = item.priority;
+      nodes.push(created);
+      links.push({ a: parent.id, b: created.id });
+    });
+    clearCanvasPreview();
+    syncEditor();
+    save();
+    toast(`Inserted ${chosen.length} connected sub-ideas`);
+    insertBtn.disabled = true;
+    insertBtn.textContent = `✓ Inserted ${chosen.length} Nodes`;
+  };
+  actionRow.appendChild(insertBtn);
+  box.appendChild(actionRow);
+}
+
+// --- TOOL B: IMPROVE AN IDEA ---
+async function runImproveTool(ctxPayload){
+  const node = byId(selected);
+  const customInstruction = $('aiPromptInput').value.trim();
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      improvedTitle: { type: 'STRING' },
+      clearDescription: { type: 'STRING' },
+      intendedOutcome: { type: 'STRING' },
+      suggestedNextAction: { type: 'STRING' },
+      recommendedTag: { type: 'STRING', enum: VALID_TAGS },
+      recommendedPriority: { type: 'INTEGER' },
+      whyImproved: { type: 'STRING' }
+    },
+    required: ['improvedTitle', 'clearDescription', 'intendedOutcome', 'suggestedNextAction', 'recommendedTag', 'recommendedPriority', 'whyImproved']
+  };
+
+  const res = await callGeminiStructured({
+    systemInstruction: `You are a sharp product & systems thinking editor. Turn the user's selected idea node into a clearer, more specific, high-clarity idea with a concrete description, measurable intended outcome, and immediate next action. Allowed tags: ${VALID_TAGS.join(', ')}.`,
+    userPrompt: JSON.stringify({
+      selectedNode: ctxPayload.selectedNode,
+      userGuidance: customInstruction || 'Make it clearer, concrete, and outcome-oriented',
+      workspaceContext: ctxPayload.nodes.map(n => ({ title: n.title, tag: n.tag }))
+    }),
+    responseSchema: schema
+  });
+
+  renderImproveReview(node, res);
+}
+
+function renderImproveReview(node, res){
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  const formattedBody = `${res.clearDescription}\n\nOutcome: ${res.intendedOutcome}\nNext Action: ${res.suggestedNextAction}`;
+  const safeTag = VALID_TAGS.includes(res.recommendedTag) ? res.recommendedTag : node.tag;
+  const safePrio = [1,2,3].includes(Number(res.recommendedPriority)) ? Number(res.recommendedPriority) : node.priority;
+
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">⚡ Proposed Idea Upgrade</span>
+      <span class="pill cyan">${safeTag} · P${safePrio}</span>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-box">
+        <b>Current Node (Before)</b>
+        <div><strong>${escapeHtml(node.title)}</strong> (${node.tag}, P${node.priority})</div>
+        <div style="color:var(--muted);margin-top:4px">${escapeHtml(node.body || '(No details yet)')}</div>
+      </div>
+      <div class="diff-box after">
+        <b>AI Refined Version (After)</b>
+        <div><strong>${escapeHtml(res.improvedTitle)}</strong> (${safeTag}, P${safePrio})</div>
+        <div style="margin-top:6px">${escapeHtml(res.clearDescription)}</div>
+        <div style="margin-top:6px;color:var(--cyan)"><strong>Intended Outcome:</strong> ${escapeHtml(res.intendedOutcome)}</div>
+        <div style="margin-top:4px;color:var(--green)"><strong>Next Action:</strong> ${escapeHtml(res.suggestedNextAction)}</div>
+      </div>
+    </div>
+    <div class="mini">${escapeHtml(res.whyImproved || '')}</div>
+    <label class="toggleline" style="margin:4px 0">
+      <span>Also spawn "Next Action" as a connected Action node</span>
+      <input type="checkbox" id="spawnNextActionChk" checked />
+    </label>
+  `;
+  box.appendChild(card);
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  const applyBtn = document.createElement('button');
+  applyBtn.className = 'primary';
+  applyBtn.textContent = '✓ Confirm & Apply to Node';
+  applyBtn.onclick = () => {
+    const target = byId(node.id);
+    if(!target){
+      toast('Original node no longer exists');
+      return;
+    }
+    pushUndoSnapshot(`Improve "${target.title}"`);
+    target.title = String(res.improvedTitle).slice(0, 90);
+    target.body = formattedBody.slice(0, 2500);
+    target.tag = safeTag;
+    target.priority = safePrio;
+
+    const spawnChk = $('spawnNextActionChk');
+    if(spawnChk && spawnChk.checked && res.suggestedNextAction){
+      const actionTitle = String(res.suggestedNextAction).slice(0, 85);
+      if(!findDuplicateNode(actionTitle)){
+        const child = makeNode(target.x + 150, target.y + 60, actionTitle, 'Action', `Next action for "${target.title}".\nTarget outcome: ${res.intendedOutcome}`);
+        child.priority = Math.max(2, safePrio);
+        nodes.push(child);
+        links.push({ a: target.id, b: child.id });
+      }
+    }
+    syncEditor();
+    save();
+    toast('Idea updated (Ctrl+Z to undo)');
+    applyBtn.disabled = true;
+    applyBtn.textContent = '✓ Applied to Workspace';
+  };
+  row.appendChild(applyBtn);
+  box.appendChild(row);
+}
+
+// --- TOOL C: UNDERSTAND MY WORKSPACE ---
+async function runUnderstandTool(ctxPayload){
+  const question = $('aiPromptInput').value.trim() || 'What are the main themes, hidden connections, unanswered questions, and top priorities in my workspace?';
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      directAnswer: { type: 'STRING' },
+      observedFacts: {
+        type: 'ARRAY',
+        items: { type: 'STRING' }
+      },
+      aiGeneratedSuggestions: {
+        type: 'ARRAY',
+        items: { type: 'STRING' }
+      },
+      relatedUnconnectedPairs: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            nodeAId: { type: 'STRING' },
+            nodeBId: { type: 'STRING' },
+            reason: { type: 'STRING' }
+          },
+          required: ['nodeAId', 'nodeBId', 'reason']
+        }
+      },
+      unansweredQuestionsToAdd: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            title: { type: 'STRING' },
+            body: { type: 'STRING' },
+            connectToNodeId: { type: 'STRING' }
+          },
+          required: ['title', 'body']
+        }
+      }
+    },
+    required: ['directAnswer', 'observedFacts', 'aiGeneratedSuggestions', 'relatedUnconnectedPairs', 'unansweredQuestionsToAdd']
+  };
+
+  const res = await callGeminiStructured({
+    systemInstruction: `You are a workspace graph analyst for Gravity Notes. Answer the user's question about their mind map. CRITICAL: Strictly separate (1) "observedFacts" (verifiable facts directly present in the user's nodes, tags, priorities, and existing links) from (2) "aiGeneratedSuggestions" (your inferred themes, missing links, blind spots, and recommendations). Only reference real node IDs from the provided payload.`,
+    userPrompt: JSON.stringify({
+      question,
+      workspace: ctxPayload
+    }),
+    responseSchema: schema
+  });
+
+  renderUnderstandResults(question, ctxPayload.observedMetrics, res);
+}
+
+function renderUnderstandResults(question, localMetrics, res){
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  lastExportableMarkdown = `# Workspace Analysis\n\n**Question:** ${question}\n\n## Observed Workspace Facts\n- Total Nodes: ${localMetrics.totalNodes}, Connections: ${localMetrics.totalLinks}\n- Tags: ${localMetrics.tagBreakdown}\n${(res.observedFacts||[]).map(f=>`- ${f}`).join('\n')}\n\n## AI-Generated Insights & Suggestions\n${res.directAnswer}\n\n${(res.aiGeneratedSuggestions||[]).map(s=>`- ${s}`).join('\n')}\n`;
+
+  // 1. Observed Facts Card
+  const obsCard = document.createElement('div');
+  obsCard.className = 'ai-card observed';
+  obsCard.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">📊 Observed Workspace Data (Graph Truth)</span>
+      <span class="pill cyan">Observed</span>
+    </div>
+    <div class="ai-card-body" style="white-space:normal">
+      <div>• <b>Graph Size:</b> ${localMetrics.totalNodes} nodes, ${localMetrics.totalLinks} connections (${escapeHtml(localMetrics.tagBreakdown)})</div>
+      <div>• <b>Unconnected Nodes:</b> ${localMetrics.isolatedNodes.length ? escapeHtml(localMetrics.isolatedNodes.join(', ')) : 'None (all nodes connected)'}</div>
+      <div>• <b>Top Hubs:</b> ${localMetrics.topHubs.length ? escapeHtml(localMetrics.topHubs.join(', ')) : 'None'}</div>
+      ${(res.observedFacts || []).map(f => `<div style="margin-top:4px">• ${escapeHtml(f)}</div>`).join('')}
+    </div>
+  `;
+  box.appendChild(obsCard);
+
+  // 2. AI Inferred Synthesis Card
+  const aiCard = document.createElement('div');
+  aiCard.className = 'ai-card inferred';
+  aiCard.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">✦ AI-Generated Analysis &amp; Recommendations</span>
+      <span class="pill pink">AI Inferred</span>
+    </div>
+    <div class="ai-card-body">${escapeHtml(res.directAnswer || '')}</div>
+    <div class="ai-card-body" style="white-space:normal;border-top:1px solid #253252;padding-top:6px">
+      ${(res.aiGeneratedSuggestions || []).map(s => `<div style="margin-bottom:5px">→ ${escapeHtml(s)}</div>`).join('')}
+    </div>
+  `;
+  box.appendChild(aiCard);
+
+  // 3. Related but Unconnected Pairs
+  const validPairs = (res.relatedUnconnectedPairs || []).filter(p => byId(p.nodeAId) && byId(p.nodeBId) && !linked(p.nodeAId, p.nodeBId));
+  if(validPairs.length){
+    canvasPreview.links = validPairs.map(p => ({ a: p.nodeAId, b: p.nodeBId }));
+    $('previewBanner').hidden = false;
+
+    const pairCard = document.createElement('div');
+    pairCard.className = 'ai-card';
+    pairCard.innerHTML = `
+      <div class="ai-card-head">
+        <span class="ai-card-title">↗ Related But Unconnected Ideas</span>
+        <span class="pill amber">${validPairs.length} links</span>
+      </div>
+      <div class="ai-card-body" style="white-space:normal">
+        ${validPairs.map(p => `<div style="margin-bottom:5px"><b>${escapeHtml(byId(p.nodeAId).title)}</b> ↔ <b>${escapeHtml(byId(p.nodeBId).title)}</b><br><span class="mini">${escapeHtml(p.reason)}</span></div>`).join('')}
+      </div>
+    `;
+    const linkBtn = document.createElement('button');
+    linkBtn.className = 'sm primary';
+    linkBtn.textContent = `＋ Connect All ${validPairs.length} Related Pairs`;
+    linkBtn.onclick = () => {
+      pushUndoSnapshot('Connect related pairs');
+      validPairs.forEach(p => {
+        if(!linked(p.nodeAId, p.nodeBId)) links.push({ a: p.nodeAId, b: p.nodeBId });
+      });
+      clearCanvasPreview();
+      syncStats();
+      save();
+      toast(`Added ${validPairs.length} semantic connections`);
+      linkBtn.disabled = true;
+      linkBtn.textContent = '✓ Connected on Canvas';
+    };
+    pairCard.appendChild(linkBtn);
+    box.appendChild(pairCard);
+  }
+
+  // 4. Unanswered Questions to Add
+  const questions = (res.unansweredQuestionsToAdd || []).filter(q => q.title && !findDuplicateNode(q.title));
+  if(questions.length){
+    const qCard = document.createElement('div');
+    qCard.className = 'ai-card';
+    qCard.innerHTML = `
+      <div class="ai-card-head">
+        <span class="ai-card-title">? Suggested Unanswered Questions</span>
+        <span class="pill">${questions.length} nodes</span>
+      </div>
+      <div class="ai-card-body" style="white-space:normal">
+        ${questions.map(q => `<div style="margin-bottom:5px"><b>${escapeHtml(q.title)}</b><br><span class="mini">${escapeHtml(q.body)}</span></div>`).join('')}
+      </div>
+    `;
+    const addQBtn = document.createElement('button');
+    addQBtn.className = 'sm primary';
+    addQBtn.textContent = '＋ Add Question Nodes to Canvas';
+    addQBtn.onclick = () => {
+      pushUndoSnapshot('Add unanswered questions');
+      questions.forEach((q, idx) => {
+        const anchor = byId(q.connectToNodeId) || byId(selected) || nodes[0];
+        const nx = (anchor ? anchor.x : 0) + Math.cos(idx * 1.3) * 155;
+        const ny = (anchor ? anchor.y : 0) + Math.sin(idx * 1.3) * 155;
+        const n = makeNode(nx, ny, q.title, 'Question', q.body);
+        n.priority = 2;
+        nodes.push(n);
+        if(anchor) links.push({ a: anchor.id, b: n.id });
+      });
+      syncEditor();
+      save();
+      toast(`Added ${questions.length} Question nodes`);
+      addQBtn.disabled = true;
+      addQBtn.textContent = '✓ Added to Canvas';
+    };
+    qCard.appendChild(addQBtn);
+    box.appendChild(qCard);
+  }
+
+  appendCopyExportToolbar(box, lastExportableMarkdown);
+}
+
+// --- TOOL D: SMART SEMANTIC CLUSTERING ---
+async function runClusterTool(ctxPayload){
+  if(nodes.length < 2){
+    showAiError('Add at least 2 idea nodes to run semantic cluster analysis.');
+    return;
+  }
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      semanticClusters: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            clusterName: { type: 'STRING' },
+            themeSummary: { type: 'STRING' },
+            nodeIds: { type: 'ARRAY', items: { type: 'STRING' } }
+          },
+          required: ['clusterName', 'themeSummary', 'nodeIds']
+        }
+      },
+      tagRecommendations: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            nodeId: { type: 'STRING' },
+            suggestedTag: { type: 'STRING', enum: VALID_TAGS },
+            suggestedPriority: { type: 'INTEGER' },
+            reason: { type: 'STRING' }
+          },
+          required: ['nodeId', 'suggestedTag', 'suggestedPriority', 'reason']
+        }
+      },
+      semanticLinks: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            nodeAId: { type: 'STRING' },
+            nodeBId: { type: 'STRING' },
+            reason: { type: 'STRING' }
+          },
+          required: ['nodeAId', 'nodeBId', 'reason']
+        }
+      }
+    },
+    required: ['semanticClusters', 'tagRecommendations', 'semanticLinks']
+  };
+
+  const res = await callGeminiStructured({
+    systemInstruction: `You are a semantic knowledge-graph clustering engine. Analyze the deep conceptual meaning of each note's title and details—do NOT simply group notes because they already share the same tag. Identify conceptual clusters, recommend better tags (${VALID_TAGS.join(', ')}) or priorities (1-3) where a note's meaning fits another category better, and suggest missing semantic links between conceptually coupled notes.`,
+    userPrompt: JSON.stringify({
+      task: 'Perform deep semantic clustering and tag optimization across these workspace nodes.',
+      workspace: ctxPayload
+    }),
+    responseSchema: schema
+  });
+
+  renderClusterReview(res);
+}
+
+function renderClusterReview(res){
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  const palette = ['#46e6f4', '#f472d0', '#ffd166', '#83f2b0', '#a78bfa'];
+  const rings = [];
+  (res.semanticClusters || []).forEach((cl, idx) => {
+    const col = palette[idx % palette.length];
+    (cl.nodeIds || []).forEach(id => {
+      if(byId(id)) rings.push({ nodeId: id, color: col, label: cl.clusterName });
+    });
+  });
+
+  const validLinks = (res.semanticLinks || []).filter(l => byId(l.nodeAId) && byId(l.nodeBId) && !linked(l.nodeAId, l.nodeBId));
+  canvasPreview = {
+    nodes: [],
+    links: validLinks.map(l => ({ a: l.nodeAId, b: l.nodeBId })),
+    clusterRings: rings
+  };
+  $('previewBanner').hidden = false;
+
+  // Semantic Clusters Overview
+  (res.semanticClusters || []).forEach((cl, idx) => {
+    const col = palette[idx % palette.length];
+    const memberNames = (cl.nodeIds || []).map(id => byId(id)?.title).filter(Boolean);
+    const card = document.createElement('div');
+    card.className = 'ai-card';
+    card.style.borderLeft = `3px solid ${col}`;
+    card.innerHTML = `
+      <div class="ai-card-head">
+        <span class="ai-card-title" style="color:${col}">❖ ${escapeHtml(cl.clusterName)}</span>
+        <span class="pill">${memberNames.length} nodes</span>
+      </div>
+      <div class="ai-card-body">${escapeHtml(cl.themeSummary)}</div>
+      <div class="mini">Members: ${escapeHtml(memberNames.join(' · ') || 'None')}</div>
+    `;
+    box.appendChild(card);
+  });
+
+  // Tag & Priority Recommendations
+  const tagDiffs = (res.tagRecommendations || []).filter(t => {
+    const n = byId(t.nodeId);
+    return n && (n.tag !== t.suggestedTag || n.priority !== Number(t.suggestedPriority));
+  });
+
+  const tagChecks = [];
+  if(tagDiffs.length){
+    const tagCard = document.createElement('div');
+    tagCard.className = 'ai-card';
+    tagCard.innerHTML = `
+      <div class="ai-card-head">
+        <span class="ai-card-title">🏷 Recommended Semantic Tag &amp; Priority Updates</span>
+        <span class="pill cyan">${tagDiffs.length} updates</span>
+      </div>
+    `;
+    tagDiffs.forEach(item => {
+      const n = byId(item.nodeId);
+      const row = document.createElement('label');
+      row.style.cssText = 'display:block;font-size:11.5px;padding:6px 0;border-top:1px solid #222d48;cursor:pointer';
+      row.innerHTML = `
+        <input type="checkbox" checked />
+        <b>${escapeHtml(n.title)}</b>: ${n.tag} (P${n.priority}) → <span style="color:var(--cyan)">${escapeHtml(item.suggestedTag)} (P${item.suggestedPriority})</span>
+        <div class="mini">${escapeHtml(item.reason)}</div>
+      `;
+      tagCard.appendChild(row);
+      tagChecks.push({ checkbox: row.querySelector('input'), item });
+    });
+    box.appendChild(tagCard);
+  }
+
+  // Proposed Semantic Links
+  const linkChecks = [];
+  if(validLinks.length){
+    const linkCard = document.createElement('div');
+    linkCard.className = 'ai-card';
+    linkCard.innerHTML = `
+      <div class="ai-card-head">
+        <span class="ai-card-title">↗ Proposed Semantic Connections</span>
+        <span class="pill pink">${validLinks.length} links</span>
+      </div>
+    `;
+    validLinks.forEach(item => {
+      const a = byId(item.nodeAId), b = byId(item.nodeBId);
+      const row = document.createElement('label');
+      row.style.cssText = 'display:block;font-size:11.5px;padding:6px 0;border-top:1px solid #222d48;cursor:pointer';
+      row.innerHTML = `
+        <input type="checkbox" checked />
+        <b>${escapeHtml(a.title)}</b> ↔ <b>${escapeHtml(b.title)}</b>
+        <div class="mini">${escapeHtml(item.reason)}</div>
+      `;
+      linkCard.appendChild(row);
+      linkChecks.push({ checkbox: row.querySelector('input'), item });
+    });
+    box.appendChild(linkCard);
+  }
+
+  const applyBtn = document.createElement('button');
+  applyBtn.className = 'primary';
+  applyBtn.textContent = '✓ Apply Approved Cluster Updates & Arrange';
+  applyBtn.onclick = () => {
+    pushUndoSnapshot('Smart semantic clustering');
+    let changes = 0;
+    tagChecks.forEach(({ checkbox, item }) => {
+      if(!checkbox.checked) return;
+      const n = byId(item.nodeId);
+      if(n){
+        if(VALID_TAGS.includes(item.suggestedTag)) n.tag = item.suggestedTag;
+        if([1,2,3].includes(Number(item.suggestedPriority))) n.priority = Number(item.suggestedPriority);
+        changes++;
+      }
+    });
+    linkChecks.forEach(({ checkbox, item }) => {
+      if(!checkbox.checked) return;
+      if(!linked(item.nodeAId, item.nodeBId)){
+        links.push({ a: item.nodeAId, b: item.nodeBId });
+        changes++;
+      }
+    });
+    // Gently nudge members of each semantic cluster toward a shared cluster centroid
+    const clusterList = res.semanticClusters || [];
+    clusterList.forEach((cl, idx) => {
+      const ang = (idx / Math.max(1, clusterList.length)) * Math.PI * 2;
+      const cx = Math.cos(ang) * 180;
+      const cy = Math.sin(ang) * 180;
+      (cl.nodeIds || []).forEach((id, mIdx) => {
+        const n = byId(id);
+        if(n){
+          n.x = n.x * 0.45 + (cx + Math.cos(mIdx) * 45) * 0.55;
+          n.y = n.y * 0.45 + (cy + Math.sin(mIdx) * 45) * 0.55;
+        }
+      });
+    });
+    clearCanvasPreview();
+    syncEditor();
+    save();
+    toast(`Applied semantic clustering (${changes} updates)`);
+    applyBtn.disabled = true;
+    applyBtn.textContent = '✓ Semantic Clusters Applied';
+  };
+  box.appendChild(applyBtn);
+}
+
+// --- TOOL E: TURN IDEAS INTO AN ACTION PLAN ---
+async function runActionPlanTool(ctxPayload){
+  const focusPrompt = $('aiPromptInput').value.trim();
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      planTitle: { type: 'STRING' },
+      executiveSummary: { type: 'STRING' },
+      milestones: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            name: { type: 'STRING' },
+            targetOutcome: { type: 'STRING' }
+          },
+          required: ['name', 'targetOutcome']
+        }
+      },
+      tasks: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            title: { type: 'STRING' },
+            description: { type: 'STRING' },
+            priority: { type: 'INTEGER' },
+            milestone: { type: 'STRING' },
+            dependencies: { type: 'STRING' },
+            completionCriteria: { type: 'STRING' },
+            sourceNodeId: { type: 'STRING' }
+          },
+          required: ['title', 'description', 'priority', 'milestone', 'dependencies', 'completionCriteria']
+        }
+      }
+    },
+    required: ['planTitle', 'executiveSummary', 'milestones', 'tasks']
+  };
+
+  const res = await callGeminiStructured({
+    systemInstruction: `You are a technical program manager & execution architect. Convert the user's selected node and connected workspace ideas into a structured, realistic action plan with milestones, prioritized tasks (1=Normal, 2=High, 3=Critical), clear dependencies, and measurable completion criteria.`,
+    userPrompt: JSON.stringify({
+      userGoal: focusPrompt || 'Create a prioritized execution roadmap from these ideas',
+      workspace: ctxPayload
+    }),
+    responseSchema: schema
+  });
+
+  renderActionPlanReview(res);
+}
+
+function renderActionPlanReview(res){
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  const tasks = Array.isArray(res.tasks) ? res.tasks : [];
+  const milestones = Array.isArray(res.milestones) ? res.milestones : [];
+
+  let md = `# ${res.planTitle || 'Gravity Notes Action Plan'}\n\n${res.executiveSummary || ''}\n\n## Milestones\n`;
+  milestones.forEach(m => { md += `- **${m.name}:** ${m.targetOutcome}\n`; });
+  md += `\n## Actionable Tasks\n\n`;
+  tasks.forEach((t, i) => {
+    md += `### ${i+1}. ${t.title} (Priority: P${t.priority} · ${t.milestone})\n- **Description:** ${t.description}\n- **Dependencies:** ${t.dependencies}\n- **Completion Criteria:** ${t.completionCriteria}\n\n`;
+  });
+  lastExportableMarkdown = md;
+
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'ai-card';
+  summaryCard.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">▤ ${escapeHtml(res.planTitle || 'Action Plan')}</span>
+      <span class="pill green">${tasks.length} tasks</span>
+    </div>
+    <div class="ai-card-body">${escapeHtml(res.executiveSummary || '')}</div>
+    <div class="mini"><b>Milestones:</b> ${milestones.map(m => escapeHtml(m.name)).join(' → ')}</div>
+  `;
+  box.appendChild(summaryCard);
+
+  const taskChecks = [];
+  tasks.forEach((t, idx) => {
+    const dup = findDuplicateNode(t.title);
+    const prio = [1,2,3].includes(Number(t.priority)) ? Number(t.priority) : 2;
+    const card = document.createElement('div');
+    card.className = 'ai-card' + (dup ? ' warn' : '');
+    card.innerHTML = `
+      <label class="ai-card-head" style="cursor:pointer">
+        <span class="ai-card-title">
+          <input type="checkbox" ${dup ? '' : 'checked'} />
+          <span>${idx + 1}. ${escapeHtml(t.title)}</span>
+        </span>
+        <span class="pill amber">P${prio} · ${escapeHtml(t.milestone)}</span>
+      </label>
+      <div class="ai-card-body">${escapeHtml(t.description)}</div>
+      <div class="mini"><b>Depends on:</b> ${escapeHtml(t.dependencies)}</div>
+      <div class="mini" style="color:var(--green)"><b>Done when:</b> ${escapeHtml(t.completionCriteria)}</div>
+    `;
+    box.appendChild(card);
+    taskChecks.push({ checkbox: card.querySelector('input'), task: { ...t, priority: prio } });
+  });
+
+  const addTasksBtn = document.createElement('button');
+  addTasksBtn.className = 'primary';
+  addTasksBtn.textContent = '＋ Add Approved Tasks as Connected Action Nodes';
+  addTasksBtn.onclick = () => {
+    const chosen = taskChecks.filter(c => c.checkbox.checked).map(c => c.task);
+    if(!chosen.length){
+      toast('Select at least one task to add');
+      return;
+    }
+    pushUndoSnapshot(`Add Action Plan (${chosen.length} tasks)`);
+    const anchor = byId(selected) || nodes[0];
+    let prevNodeId = anchor ? anchor.id : null;
+    chosen.forEach((t, i) => {
+      const srcNode = byId(t.sourceNodeId) || anchor;
+      const baseX = srcNode ? srcNode.x : 0;
+      const baseY = srcNode ? srcNode.y : 0;
+      const nx = baseX + 185 + (i % 2) * 95;
+      const ny = baseY - 120 + i * 78;
+      const bodyText = `${t.description}\n\nMilestone: ${t.milestone}\nDependencies: ${t.dependencies}\nCompletion Criteria: ${t.completionCriteria}`;
+      const n = makeNode(nx, ny, t.title, 'Action', bodyText);
+      n.priority = t.priority;
+      nodes.push(n);
+      if(srcNode) links.push({ a: srcNode.id, b: n.id });
+      if(prevNodeId && prevNodeId !== srcNode?.id && !linked(prevNodeId, n.id)){
+        links.push({ a: prevNodeId, b: n.id });
+      }
+      prevNodeId = n.id;
+    });
+    syncEditor();
+    save();
+    toast(`Added ${chosen.length} Action Plan nodes to canvas`);
+    addTasksBtn.disabled = true;
+    addTasksBtn.textContent = '✓ Plan Added to Canvas';
+  };
+  box.appendChild(addTasksBtn);
+
+  appendCopyExportToolbar(box, lastExportableMarkdown);
+}
+
+// --- TOOL F: CONTEXT-AWARE STREAMING ASSISTANT ---
+async function runStreamingAssistantTool(ctxPayload){
+  const userQ = $('aiPromptInput').value.trim() || 'Analyze my current workspace and suggest the highest-leverage next ideas.';
+  $('aiEmptyPrompt').hidden = true;
+  const box = $('aiResultsContainer');
+  box.innerHTML = '';
+
+  const streamCard = document.createElement('div');
+  streamCard.className = 'ai-card inferred';
+  streamCard.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">💬 Copilot Live Response</span>
+      <span class="pill cyan" id="streamStatusPill">Streaming…</span>
+    </div>
+    <div class="ai-card-body" id="streamOutputBody">Connecting to Gemini stream…</div>
+  `;
+  box.appendChild(streamCard);
+
+  const systemInstruction = `You are the Context-Aware Thinking Copilot inside Gravity Notes.
+Answer the user's question thoughtfully using their live mind-map workspace context.
+1. Clearly separate Observed Workspace Facts from your AI Suggestions.
+2. At the very end of your response, include a fenced JSON block tagged \`\`\`json-nodes containing 2 to 4 concrete suggested nodes the user can insert onto their canvas, in this exact format:
+\`\`\`json-nodes
+[
+  {"title": "Short node title", "tag": "Action", "priority": 2, "body": "Concrete description and next step"}
+]
+\`\`\`
+Allowed tags: ${VALID_TAGS.join(', ')}.`;
+
+  const fullText = await callGeminiStream({
+    systemInstruction,
+    userPrompt: JSON.stringify({ question: userQ, workspace: ctxPayload }),
+    onChunk: (partial) => {
+      const display = partial.replace(/```json-nodes[\s\S]*$/i, '').trim();
+      $('streamOutputBody').textContent = display || '…';
+    }
+  });
+
+  const cleanText = fullText.replace(/```json-nodes[\s\S]*```/i, '').trim();
+  $('streamOutputBody').textContent = cleanText;
+  $('streamStatusPill').textContent = 'Complete';
+  lastExportableMarkdown = `# Gravity Notes Copilot Response\n\n**Prompt:** ${userQ}\n\n${cleanText}\n`;
+
+  // Parse suggested nodes from the fenced block if present
+  const match = fullText.match(/```json-nodes\s*([\s\S]*?)```/i);
+  if(match){
+    try{
+      const suggestedNodes = JSON.parse(match[1].trim());
+      if(Array.isArray(suggestedNodes) && suggestedNodes.length){
+        renderStreamingNodeSuggestions(box, suggestedNodes);
+      }
+    }catch(_e){}
+  }
+
+  appendCopyExportToolbar(box, lastExportableMarkdown);
+}
+
+function renderStreamingNodeSuggestions(box, suggestedNodes){
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.innerHTML = `
+    <div class="ai-card-head">
+      <span class="ai-card-title">＋ Suggested Nodes from Response</span>
+      <span class="pill pink">${suggestedNodes.length} ideas</span>
+    </div>
+  `;
+  const checks = [];
+  suggestedNodes.forEach(item => {
+    const dup = findDuplicateNode(item.title);
+    const safeTag = VALID_TAGS.includes(item.tag) ? item.tag : 'General';
+    const prio = [1,2,3].includes(Number(item.priority)) ? Number(item.priority) : 2;
+    const row = document.createElement('label');
+    row.style.cssText = 'display:block;font-size:11.5px;padding:6px 0;border-top:1px solid #222d48;cursor:pointer';
+    row.innerHTML = `
+      <input type="checkbox" ${dup ? '' : 'checked'} />
+      <b>${escapeHtml(item.title)}</b> <span class="pill">${safeTag} · P${prio}</span>
+      <div class="mini">${escapeHtml(item.body || '')}</div>
+    `;
+    card.appendChild(row);
+    checks.push({ checkbox: row.querySelector('input'), item: { ...item, tag: safeTag, priority: prio } });
+  });
+
+  const btn = document.createElement('button');
+  btn.className = 'sm primary';
+  btn.textContent = '＋ Add Selected Suggestions to Canvas';
+  btn.onclick = () => {
+    const chosen = checks.filter(c => c.checkbox.checked).map(c => c.item);
+    if(!chosen.length) return;
+    pushUndoSnapshot(`Add ${chosen.length} assistant suggestions`);
+    const anchor = byId(selected) || nodes[0];
+    chosen.forEach((it, idx) => {
+      const ang = idx * 1.2;
+      const nx = (anchor ? anchor.x : 0) + Math.cos(ang) * 165;
+      const ny = (anchor ? anchor.y : 0) + Math.sin(ang) * 165;
+      const n = makeNode(nx, ny, it.title, it.tag, it.body);
+      n.priority = it.priority;
+      nodes.push(n);
+      if(anchor) links.push({ a: anchor.id, b: n.id });
+    });
+    syncEditor();
+    save();
+    toast(`Added ${chosen.length} suggested nodes`);
+    btn.disabled = true;
+    btn.textContent = '✓ Added to Canvas';
+  };
+  card.appendChild(btn);
+  box.appendChild(card);
+}
+
+function appendCopyExportToolbar(container, markdownText){
+  const bar = document.createElement('div');
+  bar.className = 'row';
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'sm';
+  copyBtn.textContent = '📋 Copy Response';
+  copyBtn.onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(markdownText);
+      toast('Copied response to clipboard');
+    }catch(_e){
+      toast('Clipboard copy unavailable');
+    }
+  };
+  const expBtn = document.createElement('button');
+  expBtn.className = 'sm';
+  expBtn.textContent = '⬇ Export Plan (.md)';
+  expBtn.onclick = () => {
+    download('gravity-notes-ai-plan.md', 'text/markdown;charset=utf-8', markdownText);
+    toast('Exported Markdown plan');
+  };
+  bar.appendChild(copyBtn);
+  bar.appendChild(expBtn);
+  container.appendChild(bar);
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+// ============================================================================
+// BUILT-IN PURE-JS PKZIP GENERATOR (DOWNLOAD COMPLETE RUNNABLE PROJECT .ZIP)
+// ============================================================================
+function createCrc32Table(){
+  const table = new Uint32Array(256);
+  for(let i=0;i<256;i++){
+    let c = i;
+    for(let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    table[i] = c >>> 0;
+  }
+  return table;
+}
+const CRC_TABLE = createCrc32Table();
+function crc32(bytes){
+  let crc = 0xFFFFFFFF;
+  for(let i=0;i<bytes.length;i++){
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function buildZipBlob(fileMap){
+  const encoder = new TextEncoder();
+  const entries = Object.entries(fileMap).map(([name, content]) => ({
+    nameBytes: encoder.encode(name),
+    dataBytes: encoder.encode(content)
+  }));
+
+  let localSize = 0;
+  let centralSize = 0;
+  entries.forEach(e => {
+    e.crc = crc32(e.dataBytes);
+    e.offset = localSize;
+    localSize += 30 + e.nameBytes.length + e.dataBytes.length;
+    centralSize += 46 + e.nameBytes.length;
+  });
+
+  const total = new Uint8Array(localSize + centralSize + 22);
+  const dv = new DataView(total.buffer);
+  let ptr = 0;
+
+  entries.forEach(e => {
+    dv.setUint32(ptr, 0x04034b50, true);
+    dv.setUint16(ptr + 4, 20, true);
+    dv.setUint16(ptr + 6, 0, true);
+    dv.setUint16(ptr + 8, 0, true);
+    dv.setUint16(ptr + 10, 0, true);
+    dv.setUint16(ptr + 12, 0, true);
+    dv.setUint32(ptr + 14, e.crc, true);
+    dv.setUint32(ptr + 18, e.dataBytes.length, true);
+    dv.setUint32(ptr + 22, e.dataBytes.length, true);
+    dv.setUint16(ptr + 26, e.nameBytes.length, true);
+    dv.setUint16(ptr + 28, 0, true);
+    total.set(e.nameBytes, ptr + 30);
+    total.set(e.dataBytes, ptr + 30 + e.nameBytes.length);
+    ptr += 30 + e.nameBytes.length + e.dataBytes.length;
+  });
+
+  const centralStart = ptr;
+  entries.forEach(e => {
+    dv.setUint32(ptr, 0x02014b50, true);
+    dv.setUint16(ptr + 4, 20, true);
+    dv.setUint16(ptr + 6, 20, true);
+    dv.setUint16(ptr + 8, 0, true);
+    dv.setUint16(ptr + 10, 0, true);
+    dv.setUint16(ptr + 12, 0, true);
+    dv.setUint16(ptr + 14, 0, true);
+    dv.setUint32(ptr + 16, e.crc, true);
+    dv.setUint32(ptr + 20, e.dataBytes.length, true);
+    dv.setUint32(ptr + 24, e.dataBytes.length, true);
+    dv.setUint16(ptr + 28, e.nameBytes.length, true);
+    dv.setUint16(ptr + 30, 0, true);
+    dv.setUint16(ptr + 32, 0, true);
+    dv.setUint16(ptr + 34, 0, true);
+    dv.setUint16(ptr + 36, 0, true);
+    dv.setUint32(ptr + 38, 0, true);
+    dv.setUint32(ptr + 42, e.offset, true);
+    total.set(e.nameBytes, ptr + 46);
+    ptr += 46 + e.nameBytes.length;
+  });
+
+  dv.setUint32(ptr, 0x06054b50, true);
+  dv.setUint16(ptr + 4, 0, true);
+  dv.setUint16(ptr + 6, 0, true);
+  dv.setUint16(ptr + 8, entries.length, true);
+  dv.setUint16(ptr + 10, entries.length, true);
+  dv.setUint32(ptr + 12, centralSize, true);
+  dv.setUint32(ptr + 16, centralStart, true);
+  dv.setUint16(ptr + 20, 0, true);
+
+  return new Blob([total], { type: 'application/zip' });
+}
+
+function downloadProjectZip(){
+  // Ensure no runtime BYOK input value is ever serialized when capturing HTML
+  const byokEl = $('byokInput');
+  const tempVal = byokEl.value;
+  byokEl.value = '';
+  const cleanHtml = '<!doctype html>\n' + document.documentElement.outerHTML;
+  byokEl.value = tempVal;
+
+  const files = {
+    'index.html': cleanHtml,
+    'server.js': PROJECT_SERVER_JS,
+    'package.json': PROJECT_PACKAGE_JSON,
+    '.env.example': PROJECT_ENV_EXAMPLE,
+    '.gitignore': 'node_modules/\n.env\n.DS_Store\n',
+    'README.md': PROJECT_README_MD
+  };
+  const zipBlob = buildZipBlob(files);
+  download('gravity-notes-ai-workspace.zip', 'application/zip', zipBlob);
+  toast('Downloaded gravity-notes-ai-workspace.zip');
+}
+
+const PROJECT_SERVER_JS = `// Gravity Notes — Production-Safe Node.js Server & Gemini API Proxy
+// Zero external dependencies required (uses built-in Node 18+ http, fs, path, fetch)
+'use strict';
+
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+// Optional .env file loader (if a local .env file exists)
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx > 0) {
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed.slice(eqIdx + 1).trim().replace(/^['"]|['"]$/g, '');
+      if (!process.env[key]) process.env[key] = val;
+    }
+  }
+}
+
+const PORT = Number(process.env.PORT) || 3000;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+const FALLBACK_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-flash-latest'
+];
+
+// Per-IP sliding window rate limiter (30 requests per minute)
+const rateMap = new Map();
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateMap.get(ip) || { count: 0, resetAt: now + 60000 };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + 60000;
+  }
+  entry.count++;
+  rateMap.set(ip, entry);
+  return entry.count <= 30;
+}
+
+function readJsonBody(req, maxBytes = 250000) {
+  return new Promise((resolve, reject) => {
+    let total = 0;
+    const chunks = [];
+    req.on('data', (chunk) => {
+      total += chunk.length;
+      if (total > maxBytes) {
+        req.destroy();
+        reject(new Error('Request payload exceeds 250KB limit.'));
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      try {
+        const raw = Buffer.concat(chunks).toString('utf8') || '{}';
+        resolve(JSON.parse(raw));
+      } catch (e) {
+        reject(new Error('Malformed JSON request body.'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function sendJson(res, status, obj) {
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(obj));
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, \`http://\${req.headers.host || 'localhost'}\`);
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'local';
+
+  // 1. Health endpoint
+  if (req.method === 'GET' && url.pathname === '/api/ai/health') {
+    return sendJson(res, 200, {
+      ok: true,
+      configured: Boolean(GEMINI_API_KEY),
+      defaultModel: DEFAULT_MODEL
+    });
+  }
+
+  // 2. Gemini API Proxy Endpoints (/api/ai/generate & /api/ai/stream)
+  if (req.method === 'POST' && (url.pathname === '/api/ai/generate' || url.pathname === '/api/ai/stream')) {
+    if (!GEMINI_API_KEY) {
+      return sendJson(res, 503, {
+        message: 'Server GEMINI_API_KEY is not configured. Set GEMINI_API_KEY in your environment or .env file.'
+      });
+    }
+    if (!checkRateLimit(ip)) {
+      return sendJson(res, 429, {
+        message: 'Rate limit exceeded (max 30 AI requests per minute). Please wait a moment.'
+      });
+    }
+
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch (err) {
+      return sendJson(res, 400, { message: err.message });
+    }
+
+    const preferred = body.model || DEFAULT_MODEL;
+    const chain = [preferred, ...FALLBACK_MODELS.filter((m) => m !== preferred)];
+
+    // 2A. Structured JSON Generation
+    if (url.pathname === '/api/ai/generate') {
+      let lastErr = null;
+      let lastErrStatus = 404;
+      for (const model of chain) {
+        const endpoint = \`https://generativelanguage.googleapis.com/v1beta/models/\${encodeURIComponent(model)}:generateContent\`;
+        const upstream = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY
+          },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: String(body.systemInstruction || '') }] },
+            contents: [{ role: 'user', parts: [{ text: String(body.userPrompt || '') }] }],
+            generationConfig: {
+              temperature: 0.4,
+              responseMimeType: 'application/json',
+              responseSchema: body.responseSchema
+            }
+          })
+        });
+
+        const data = await upstream.json().catch(() => ({}));
+        if ([404, 500, 503].includes(upstream.status)) {
+          lastErr = data;
+          lastErrStatus = upstream.status;
+          continue;
+        }
+        if (!upstream.ok) {
+          return sendJson(res, upstream.status, data);
+        }
+
+        const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '{}';
+        try {
+          const cleaned = text.trim().replace(/^\`\`\`json\s*/i, '').replace(/\`\`\`$/i, '').trim();
+          return sendJson(res, 200, { modelUsed: model, result: JSON.parse(cleaned) });
+        } catch (e) {
+          return sendJson(res, 502, { message: 'Model returned invalid JSON structure.', raw: text.slice(0, 400) });
+        }
+      }
+      return sendJson(res, lastErrStatus, lastErr || { message: 'All candidate Gemini models failed. Please retry shortly or choose another model.' });
+    }
+
+    // 2B. Server-Sent Events (SSE) Streaming Generation
+    let lastStreamError = null;
+    let lastStreamStatus = 404;
+    for (const model of chain) {
+      const endpoint = \`https://generativelanguage.googleapis.com/v1beta/models/\${encodeURIComponent(model)}:streamGenerateContent?alt=sse\`;
+      const upstream = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: String(body.systemInstruction || '') }] },
+          contents: [{ role: 'user', parts: [{ text: String(body.userPrompt || '') }] }],
+          generationConfig: { temperature: 0.5 }
+        })
+      });
+
+      if ([404, 500, 503].includes(upstream.status)) {
+        lastStreamStatus = upstream.status;
+        lastStreamError = await upstream.json().catch(() => ({}));
+        continue;
+      }
+      if (!upstream.ok) {
+        const errData = await upstream.json().catch(() => ({}));
+        return sendJson(res, upstream.status, errData);
+      }
+
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive'
+      });
+
+      for await (const chunk of upstream.body) {
+        res.write(chunk);
+      }
+      res.end();
+      return;
+    }
+    return sendJson(res, lastStreamStatus, lastStreamError || { message: 'All candidate streaming models failed. Please retry shortly or choose another model.' });
+  }
+
+  // 3. Static File Serving
+  const reqPath = url.pathname === '/' ? '/index.html' : url.pathname;
+  const safePath = path.normalize(reqPath).replace(/^(\.\.[/\\])+/, '');
+  const fullPath = path.join(__dirname, safePath);
+
+  if (!fullPath.startsWith(__dirname) || path.basename(fullPath).startsWith('.env')) {
+    return sendJson(res, 403, { message: 'Forbidden' });
+  }
+
+  fs.readFile(fullPath, (err, content) => {
+    if (err) return sendJson(res, 404, { message: 'File not found' });
+    const ext = path.extname(fullPath);
+    const mimeTypes = {
+      '.html': 'text/html; charset=utf-8',
+      '.js': 'text/javascript; charset=utf-8',
+      '.css': 'text/css; charset=utf-8',
+      '.json': 'application/json; charset=utf-8',
+      '.md': 'text/markdown; charset=utf-8'
+    };
+    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+    res.end(content);
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(\`✦ Gravity Notes AI Workspace listening on http://localhost:\${PORT}\`);
+  console.log(\`✦ Server Proxy Configured: \${Boolean(GEMINI_API_KEY)} (Default model: \${DEFAULT_MODEL})\`);
+});
+
+`;
+
+const PROJECT_PACKAGE_JSON = JSON.stringify({
+  name: 'gravity-notes-ai-workspace',
+  version: '2.0.0',
+  description: 'Physics-based spatial brainstorming mind map with Gemini AI Copilot',
+  main: 'server.js',
+  scripts: {
+    start: 'node server.js',
+    check: 'node --check server.js'
+  },
+  engines: { node: '>=18.0.0' }
+}, null, 2);
+
+const PROJECT_ENV_EXAMPLE = `# Copy this file to .env and set your Gemini Developer API key from Google AI Studio
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash-lite
+PORT=3000
+`;
+
+const PROJECT_README_MD = `# Gravity Notes — AI-Powered Thinking Workspace
+
+Run locally with Server Proxy (Recommended):
+1. \`GEMINI_API_KEY="your_key" npm start\`
+2. Open \`http://localhost:3000\`
+`;
+
+// ============================================================================
+// CANVAS & TOOLBAR EVENT LISTENERS (PRESERVED + ENHANCED)
+// ============================================================================
+canvas.addEventListener('pointerdown',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  pointer={x,y};canvas.setPointerCapture(e.pointerId);
+  const n=nodeAt(x,y);
+  if(connectMode){
+    if(n){
+      if(!connectFrom){connectFrom=n.id;selected=n.id;syncEditor();}
+      else{connect(n.id,connectFrom);connectFrom=null;connectMode=false;$('connectBtn').classList.remove('active');$('connectBtn').textContent='↗ Connect';}
+    }
+    return;
+  }
+  if(n){selected=n.id;dragging=n;n.vx=n.vy=0;syncEditor();}
+  else{selected=null;syncEditor();}
+});
+canvas.addEventListener('pointermove',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  pointer={x,y};
+  if(dragging&&!connectMode){const p=world(x,y);dragging.x=p.x;dragging.y=p.y;dragging.vx=dragging.vy=0;}
+});
+canvas.addEventListener('pointerup',()=>{if(dragging){dragging=null;save();}});
+canvas.addEventListener('pointercancel',()=>dragging=null);
+canvas.addEventListener('dblclick',e=>{
+  const r=canvas.getBoundingClientRect();
+  addNode(e.clientX-r.left,e.clientY-r.top,'New idea');
+  $('titleInput').focus();$('titleInput').select();
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  view.scale=Math.max(.55,Math.min(1.5,view.scale*(e.deltaY<0?1.08:.92)));
+},{passive:false});
+
+$('addBtn').onclick=()=>{
+  addNode(width*.5+(Math.random()-.5)*80,height*.5+(Math.random()-.5)*80);
+  $('titleInput').focus();$('titleInput').select();
+  toast('Idea added — give it a title');
+};
+$('connectBtn').onclick=()=>{
+  connectMode=!connectMode;connectFrom=null;
+  $('connectBtn').classList.toggle('active',connectMode);$('connectBtn').textContent=connectMode?'Select first node…':'↗ Connect';
+  toast(connectMode?'Choose two nodes to connect':'Connect mode off');
+};
+$('gravityBtn').onclick=()=>{
+  gravity=!gravity;
+  $('gravityBtn').classList.toggle('active',gravity);$('gravityBtn').textContent=gravity?'✦ Gravity on':'Ⅱ Gravity off';
+  save();
+};
+$('centerBtn').onclick=()=>{ view={x:0,y:0,scale:1}; nodes.forEach(n=>{n.vx=n.vy=0;}); toast('View centered'); };$('undoAiBtn').onclick=undoLastAiChange;
+$('aiToggleBtn').onclick=()=>{
+  const layout=$('mainLayout');
+  const collapsed=layout.classList.toggle('ai-collapsed');
+  $('aiToggleBtn').classList.toggle('active',!collapsed);
+  setTimeout(resize, 50);
+};
+$('aiCloseBtn').onclick=()=>{
+  $('mainLayout').classList.add('ai-collapsed');$('aiToggleBtn').classList.remove('active');
+  setTimeout(resize, 50);
+};
+$('mdBtn').onclick=()=>download('gravity-notes.md','text/markdown;charset=utf-8',markdown());
+$('jsonBtn').onclick=()=>download('gravity-notes.json','application/json;charset=utf-8',payload());$('zipBtn').onclick=downloadProjectZip;
+$('resetBtn').onclick=()=>{
+  if(confirm('Reset to the starter idea map? Your current saved map will be replaced.')){
+    localStorage.removeItem(STORE);demo();toast('Starter map restored');
+  }
+};
+$('sampleBtn').onclick=()=>{
+  if(confirm('Load the sample map? This will replace your current nodes on the canvas.')){
+    demo();toast('Sample map loaded');
+  }
+};
+$('clearLinksBtn').onclick=()=>{ if(!links.length)return; if(confirm('Clear all connections between nodes?')){ pushUndoSnapshot('Clear all links'); links=[];syncStats();save();toast('Connections cleared'); } };$('deleteBtn').onclick=deleteSelected;
+$('duplicateBtn').onclick=duplicateSelected;
+$('titleInput').addEventListener('input',e=>updateSelected('title',e.target.value));
+$('bodyInput').addEventListener('input',e=>updateSelected('body',e.target.value));$('tagInput').addEventListener('change',e=>updateSelected('tag',e.target.value));
+$('priorityInput').addEventListener('change',e=>{ const n=byId(selected);if(n){n.priority=Number(e.target.value);syncAiContext();save();} });$('tagFilter').addEventListener('change',()=>{});
+$('editorToggle').onclick=()=>$('side').classList.toggle('open');
+
+window.addEventListener('keydown',e=>{
+  const inInput = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName);
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){
+    e.preventDefault();save();toast('Workspace saved');
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!inInput){
+    if(aiUndoStack.length){e.preventDefault();undoLastAiChange();}
+  }
+  if(e.key==='Escape'){
+    if(connectMode){
+      connectMode=false;connectFrom=null;
+      $('connectBtn').classList.remove('active');$('connectBtn').textContent='↗ Connect';
+    }
+    clearCanvasPreview();
+  }
+});
+
+window.addEventListener('resize',resize);
+resize();
+if(!load())demo();
+syncStats();
+switchAiTab('brainstorm');
+checkServerProxy();
+anim=requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
